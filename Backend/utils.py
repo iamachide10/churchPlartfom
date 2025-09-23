@@ -26,10 +26,44 @@ def send_emails(self,recipient,subject,body):
         except Exception as e:
               logger.error(f"Failed to send email to {recipient}: {e}")
               raise self.retry(exc=e)
-        
-@shared_task(bind=True,max_retries=4,default_retry_delay=10)
-def check_file_validity(self,filepath):
-      try:
-            audio = File(filepath)
-            
+
+@shared_task
+def check_file_validity(audio_id):
+    check = MainAudio.query.filter_by(id=audio_id).first()
+    if not check:
+        raise Exception("Couldn't process specific audio")
+    verify = AudioStorage.query.filter_by(id=check.id).first()
+    if not verify:
+        return Exception("Couldn't process specific audio")
+    filepath = check.filepath
+    try:
+        audio = File(filepath)
+    except Exception as e:
+        os.remove(filepath)
+        db.session.delete(check)
+        db.session.delete(verify)
+        db.session.commit()
+        logger.error(f"An error occurred during file validation:{e}")
+        return {"message":"Please try uploading a real audio"}
+    if audio is None:
+        os.remove(filepath)
+        db.session.delete(check)
+        db.session.delete(verify)
+        db.session.commit()
+        raise Exception("Please upload a real audio")
+    os.makedirs(current_app.config.get("AUDIO_UPLOAD"),exist_ok=True)
+    export_path = os.path.join(current_app.config.get("AUDIO_UPLOAD"),check.filename)
+    try:
+        audio_segment = AudioSegment.from_file(filepath)
+        audio_segment.export(format="mp3",bitrate="192k",export_path)
+        os.remove(filepath)
+        return {"message":f"Audio saved successfully"}
+    except Exception as e:
+        os.remove(filepath)
+        db.session.delete(check)
+        db.session.delete(verify)
+        db.session.commit()
+        logger.error(f"Error, audio segment couldn't detect format:{e}")
+        return {"message":"Audio is corrupted"}
+
 

@@ -14,7 +14,7 @@ app.config.from_object(Config)
 celery = make_celery(app)
 db.init_app(app)
 JWTManager(app)
-
+#new commit on backend
 print(">>> loading main.py")
 print(">>> imported auth_bp")
 

@@ -27,5 +27,5 @@ class Config:
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
     CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
     AUDIO_UPLOAD = os.path.join(BASE_DIR,"shark","audios")
-    
+    TEMP_UPLOAD = os.path.join(BASE_DIR,"temp","uploads")
 
