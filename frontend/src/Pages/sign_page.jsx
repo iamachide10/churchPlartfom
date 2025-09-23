@@ -24,7 +24,8 @@ const SignUp = () => {
     }
 
     if(password !==confirmPassword) return setError("Password mismatch")
-    // Save new user
+
+      
     const newUser = { name, email, password };
     users.push(newUser);
     localStorage.setItem("users", JSON.stringify(users));
