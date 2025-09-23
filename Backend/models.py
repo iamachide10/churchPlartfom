@@ -66,3 +66,4 @@ class MainAudio(db.Model):
     filename = db.Column(db.String(320),nullable=False)
     filepath = db.Column(db.String(80),nullable=False)
     audio_storage = db.relationship("AudioStorage",back_populates="main_audio",cascade="all, delete-orphan")
+
