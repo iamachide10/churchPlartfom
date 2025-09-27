@@ -52,7 +52,7 @@ def audio_handling():
         my_only.error(f"An error occurred during audio uploads:{e}")
         return jsonify({"status":"error","message":"Oops couldn't upload audio, an error occurred"})
 
-@uploads_bp.route("/task-status/<task_id>")
+@uploads_bp.route("<ta/task-status/sk_id>")
 def task_status(task_id):
     result = AsyncResult(task_id, app=celery)
 

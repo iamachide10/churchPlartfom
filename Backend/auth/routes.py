@@ -43,7 +43,8 @@ def sign_up():
         link = url_for("auth.verify_email",token=token,_external=True)
         body = f"Please click on the link to verify your email.\n\n{link}"
         task = send_emails.delay(new_user.email,subject,body)
-        return jsonify({"status":"s","message":"User created successfully, we've sent a verification email, please check your inbox"})
+        task_id=task.id
+        return jsonify({"status":"s","message":"User created successfully, we've sent a verification email, please check your inbox","task_id":task.id})
         db.session.commit()
     except Exception as e:
         traceback.print_exc()
