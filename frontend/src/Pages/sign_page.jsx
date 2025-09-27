@@ -21,7 +21,7 @@ const handleSubmit = async (e) => {
     email,
   };
 
-  const API_URL = import.meta.env.VITE_APP_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
   const url = `${API_URL}/auth/register`;
   console.log("API_URL is:", API_URL);
   console.log("Requesting:", url);
