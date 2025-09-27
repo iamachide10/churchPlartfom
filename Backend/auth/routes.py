@@ -1,22 +1,25 @@
 from flask import jsonify,request,url_for,current_app
 import secrets
+import traceback
 from datetime import datetime,timedelta
 print(">>> loading auth/routes.py")
+from . import other_routes
 from . import auth_bp
 from models import User,ResetToken,SessionStorage,db
 from app_logging import normal_logs
-from utils import send_emails
+from tasks import send_emails
 from flask_jwt_extended import create_access_token,create_refresh_token,set_access_cookies,set_refresh_cookies,unset_jwt_cookies,decode_token
 
 
 my_log = normal_logs()
 
-@auth_bp.route("/register",methods=["POST"])
+@auth_bp.route("/register", methods=["POST"])
 def sign_up():
+    print(">>> Incoming request:", request.method)  
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error":"Invalid JSON"})
-    name = data.get("userName",None)
+    name = data.get("name",None)
     email = data.get("email",None)
     password = data.get("password",None)
     
@@ -25,8 +28,9 @@ def sign_up():
     
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
-        return jsonify({"message":"There was an issue with your sign-up.Please try again"})
+        return jsonify({"status":"e","message":"User already exist please sign in."})
     try:
+        print(">>> Creating new user:", name, email)
         new_user = User(user_name = name, email = email)
         new_user.hash_password(password)
         db.session.add(new_user)
@@ -37,15 +41,16 @@ def sign_up():
         db.session.add(reset_token) 
         db.session.commit()
         subject = "Please verify your email"
-        link = url_for("verify_email",token=token,_external=True)
+        link = url_for("auth.verify_email",token=token,_external=True)
         body = f"Please click on the link to verify your email.\n\n{link}"
         task = send_emails.delay(new_user.email,subject,body)
-
-        return jsonify({"success":"User registered successfully","message":"we've sent a verification email, please check your inbox","user":new_user.to_dic()})
+        return jsonify({"status":"s","message":"User created successfully, we've sent a verification email, please check your inbox"})
     except Exception as e:
+        traceback.print_exc()
+        print(">>> Exception occurred:", e)
         my_log.error(f"Error:{e}")
         db.session.rollback()
-        return jsonify({"message":"Please an error occurred during sign up,can tryagain later"})
+        return jsonify({"status":"e" ,"message":"Please an error occurred during sign up,can try again later"})
 
 print(">>> finished loading auth/routes.py")
 

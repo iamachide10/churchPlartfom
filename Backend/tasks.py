@@ -20,12 +20,14 @@ def send_emails(self,recipient,subject,body):
             content = Content("text/plain",body)
             mail = Mail(from_email,to_email,subject,content)
 
-            response = sg.send(mail)
+            response = sg.send(mail) 
             logger.info(f"Email sent to {recipient}, status {response.status_code}")
             return response.status_code
         except Exception as e:
               logger.error(f"Failed to send email to {recipient}: {e}")
               raise self.retry(exc=e)
+
+
 
 @shared_task
 def check_file_validity(audio_id):
@@ -55,7 +57,7 @@ def check_file_validity(audio_id):
     export_path = os.path.join(current_app.config.get("AUDIO_UPLOAD"),check.filename)
     try:
         audio_segment = AudioSegment.from_file(filepath)
-        audio_segment.export(format="mp3",bitrate="192k",export_path)
+        audio_segment.export(export_path,format="mp3",bitrate="192k")
         os.remove(filepath)
         return {"message":f"Audio saved successfully"}
     except Exception as e:

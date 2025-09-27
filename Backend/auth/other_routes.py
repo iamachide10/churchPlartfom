@@ -2,7 +2,7 @@ from . import auth_bp
 from app_logging import normal_logs
 from flask import jsonify,request
 import secrets
-from utils import send_emails
+from tasks import send_emails
 from models import User,ResetToken,SessionStorage,db
 from datetime import datetime,timedelta
 

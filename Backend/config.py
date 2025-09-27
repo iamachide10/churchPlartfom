@@ -6,7 +6,7 @@ load_dotenv()
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = "sqlite:///sharksdatabase.db"
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:shark123@localhost:5432/sharks_app_db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     JWT_TOKEN_LOCATION = ["cookies"]

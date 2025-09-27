@@ -39,7 +39,7 @@ const SignIn = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <form
         onSubmit={handleSubmit}
-        className="bg-black text-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-yellow-400"
+        className="mx-5 bg-black text-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-yellow-400"
       >
         <h2 className="text-2xl font-bold mb-6 text-center text-yellow-400">
           Sign In

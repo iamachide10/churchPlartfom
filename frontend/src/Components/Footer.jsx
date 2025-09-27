@@ -19,6 +19,7 @@ const Footer = () => {
           </p>
         </div>
 
+
         {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold text-yellow-400 mb-3">Quick Links</h3>
@@ -28,6 +29,7 @@ const Footer = () => {
             ))}
           </ul>
         </div>
+
 
         {/* Social Media */}
         <div>

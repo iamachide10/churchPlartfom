@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -10,38 +11,48 @@ const SignUp = () => {
 
 
   
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (password !== confirmPassword) return setError("Password mismatch");
 
-    // Get existing users from localStorage (if any)
-    let users = JSON.parse(localStorage.getItem("users")) || [];
-
-    // Check if email already exists
-    const userExists = users.some((user) => user.email === email);
-    if (userExists) {
-      setError("❌ Email already registered. Please sign in.");
-      return;
-    }
-
-    if(password !==confirmPassword) return setError("Password mismatch")
-
-      
-    const newUser = { name, email, password };
-    users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
-
-    setSuccess("✅ Account created successfully! You can now sign in.");
-    setError("");
-    setName("");
-    setEmail("");
-    setPassword("");
+  const credentials = {
+    name,
+    password,
+    email,
   };
 
+  const url = "http://127.0.0.1:5000/auth/register";
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" ,
+    },
+    body: JSON.stringify(credentials),
+    credentials: "include"
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    const m = data.message;
+    const status = data.status;
+
+    if (status === "e") {
+      setError(typeof m === "string" ? m : JSON.stringify(m));
+    }
+    if (status === "s") {
+      setSuccess(typeof m === "string" ? m : JSON.stringify(m));
+    }
+  } catch (err) {
+    setError(err.message || "Something went wrong");
+  }
+};
+
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 ">
       <form
         onSubmit={handleSubmit}
-        className="bg-black text-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-yellow-400"
+        className="mx-5 bg-black text-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-yellow-400"
       >
         <h2 className="text-2xl font-bold mb-6 text-center text-yellow-400">
           Sign Up

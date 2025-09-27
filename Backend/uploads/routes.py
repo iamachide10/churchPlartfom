@@ -2,10 +2,10 @@ from . import uploads_bp
 from flask import jsonify,request,current_app
 import uuid,os
 from mutagen import File
-11a1from models import AudioStorage,MainAudio
-7from app_logging import normal_logs
+from models import AudioStorage,MainAudio
+from app_logging import normal_logs
 from models import db
-from utils import check_file_validity
+from tasks import check_file_validity
 from main import celery
 from celery.result import AsyncResult
 
