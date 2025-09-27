@@ -31,9 +31,23 @@ app.register_blueprint(auth_bp )
 #     print(">>> Response headers:", dict(response.headers))
 #     return response
 
+
+
+
 print(">>> blueprint registered")
 for rule in app.url_map.iter_rules():
     print(">>> Route:", rule, "methods:", rule.methods)
+
+
+@app.route("/clear-users", methods=["GET"])
+def clear_users():
+    try:
+        num_rows = db.session.query(User).delete()  # delete all users
+        db.session.commit()
+        return jsonify({"message": f"{num_rows} users deleted"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/")
 def home():
