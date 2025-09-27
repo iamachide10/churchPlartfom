@@ -23,6 +23,9 @@ const handleSubmit = async (e) => {
 
   const API_URL = process.env.REACT_APP_API_URL;
   const url = `${API_URL}/auth/register`;
+  console.log("API_URL is:", API_URL);
+  console.log("Requesting:", url);
+
   const options = {
     method: "POST",
     headers: { "Content-Type": "application/json" ,
