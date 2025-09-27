@@ -1,4 +1,5 @@
 from flask import Flask , jsonify
+from models import User
 from config import Config
 import os
 from celery_utils import make_celery
