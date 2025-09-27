@@ -1,5 +1,6 @@
 from flask import Flask
 from config import Config
+import os
 from celery_utils import make_celery
 from models import db
 from flask_cors import CORS
@@ -35,7 +36,9 @@ for rule in app.url_map.iter_rules():
     print(">>> Route:", rule, "methods:", rule.methods)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+          db.create_all()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True ,host="0.0.0.0", port=port)
+
