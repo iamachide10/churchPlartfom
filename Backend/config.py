@@ -4,9 +4,8 @@ from datetime import timedelta
 
 load_dotenv()
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
 class Config:
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:shark123@localhost:5432/sharks_app_db"
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")  # Render/Postgres will inject this
     SQLALCHEMY_TRACK_MODIFICATIONS = False 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     JWT_TOKEN_LOCATION = ["cookies"]
@@ -26,6 +25,5 @@ class Config:
     JWT_REFRESH_COOKIE_PATH = "/refresh-tokens"
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
     CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
-    AUDIO_UPLOAD = os.path.join(BASE_DIR,"shark","audios")
-    TEMP_UPLOAD = os.path.join(BASE_DIR,"temp","uploads")
-
+    AUDIO_UPLOAD = os.path.join(BASE_DIR, "shark", "audios")
+    TEMP_UPLOAD = os.path.join(BASE_DIR, "temp", "uploads")
