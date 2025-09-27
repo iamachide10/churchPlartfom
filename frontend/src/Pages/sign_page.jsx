@@ -9,45 +9,57 @@ const SignUp = () => {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-
-  
 const handleSubmit = async (e) => {
   e.preventDefault();
-  if (password !== confirmPassword) return setError("Password mismatch");
 
-  const credentials = {
-    name,
-    password,
-    email,
-  };
+  // check password match
+  if (password !== confirmPassword) {
+    setError("Passwords do not match");
+    return;
+  }
 
+  const credentials = { name, email, password };
+
+  // get API URL from environment
   const API_URL = import.meta.env.VITE_API_URL;
-  const url = `${API_URL}/auth/register`;
-  console.log("API_URL is:", API_URL);
-  console.log("Requesting:", url);
+  if (!API_URL) {
+    console.error("❌ API_URL is not defined. Did you set VITE_API_URL in Render?");
+    setError("API not configured. Please contact support.");
+    return;
+  }
 
-  const options = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" ,
-    },
-    body: JSON.stringify(credentials),
-    credentials: "include"
-  };
+  const url = `${API_URL}/auth/register`;
+  console.log("🌍 API_URL:", API_URL);
+  console.log("➡️ Requesting:", url);
 
   try {
-    const response = await fetch(url, options);
-    const data = await response.json();
-    const m = data.message;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(credentials),
+    });
 
-    const status = data.status;
+    // check if backend sent a valid JSON
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Invalid JSON response: ${text}`);
+    }
+
+    const { status, message } = data;
 
     if (status === "e") {
-      setError(typeof m === "string" ? m : JSON.stringify(m));
-    }
-    if (status === "s") {
-      setSuccess(typeof m === "string" ? m : JSON.stringify(m));
+      setError(typeof message === "string" ? message : JSON.stringify(message));
+    } else if (status === "s") {
+      setSuccess(typeof message === "string" ? message : JSON.stringify(message));
+    } else {
+      setError("Unexpected response from server");
     }
   } catch (err) {
+    console.error("❌ Request failed:", err);
     setError(err.message || "Something went wrong");
   }
 };
