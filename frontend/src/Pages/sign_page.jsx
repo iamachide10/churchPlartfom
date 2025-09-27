@@ -21,7 +21,8 @@ const handleSubmit = async (e) => {
     email,
   };
 
-  const url = "http://127.0.0.1:5000/auth/register";
+  const API_URL = process.env.REACT_APP_API_URL;
+  const url = `${API_URL}/auth/register`;
   const options = {
     method: "POST",
     headers: { "Content-Type": "application/json" ,
