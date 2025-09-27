@@ -21,7 +21,7 @@ const handleSubmit = async (e) => {
     email,
   };
 
-  const API_URL = process.env.REACT_APP_API_URL;
+  const API_URL = import.meta.env.VITE_APP_API_URL;
   const url = `${API_URL}/auth/register`;
   console.log("API_URL is:", API_URL);
   console.log("Requesting:", url);
@@ -38,6 +38,7 @@ const handleSubmit = async (e) => {
     const response = await fetch(url, options);
     const data = await response.json();
     const m = data.message;
+
     const status = data.status;
 
     if (status === "e") {
