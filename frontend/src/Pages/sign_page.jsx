@@ -8,6 +8,7 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  console.log("VITE_API_URL from env:", import.meta.env.VITE_API_URL);
 
 const handleSubmit = async (e) => {
   e.preventDefault();
