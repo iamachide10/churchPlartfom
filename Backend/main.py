@@ -26,7 +26,8 @@ print(">>> imported auth_bp")
 print("Routes before registering:", auth_bp.deferred_functions)
 
 
-app.register_blueprint(auth_bp )
+app.register_blueprint(auth_bp)
+app.register_blueprint(uploads_bp)
 # @app.after_request
 # def after_request(response):
 #     print(">>> Response headers:", dict(response.headers))

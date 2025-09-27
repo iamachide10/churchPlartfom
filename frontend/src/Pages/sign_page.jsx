@@ -24,15 +24,7 @@ const handleSubmit = async (e) => {
 
   // get API URL from environment
   const API_URL = import.meta.env.VITE_API_URL;
-  if (!API_URL) {
-    console.error("❌ API_URL is not defined. Did you set VITE_API_URL in Render?");
-    setError("API not configured. Please contact support.");
-    return;
-  }
-
   const url = `${API_URL}/auth/register`;
-  console.log("🌍 API_URL:", API_URL);
-  console.log("➡️ Requesting:", url);
 
   try {
     const response = await fetch(url, {
@@ -53,8 +45,9 @@ const handleSubmit = async (e) => {
 
     const { status, message} = data;
 
-    
+
     const task_id=data.task_id
+    console.log(task_id)
     if(task_id){
       const url=`${API_URL}/task-status/${task_id}`
       const response = await fetch(url)
