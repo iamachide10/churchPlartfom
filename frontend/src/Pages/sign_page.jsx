@@ -13,7 +13,7 @@ const SignUp = () => {
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  // check password match
+  // /check password match
   if (password !== confirmPassword) {
     setError("Passwords do not match");
     return;
