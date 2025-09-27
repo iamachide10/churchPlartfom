@@ -35,6 +35,10 @@ print(">>> blueprint registered")
 for rule in app.url_map.iter_rules():
     print(">>> Route:", rule, "methods:", rule.methods)
 
+@app.route("/")
+def home():
+    return "Welcome to the Church Platform Backend!"
+
 
 if __name__ == "__main__":
     with app.app_context():
