@@ -69,8 +69,8 @@ def login():
     if existence:
         if existence.is_verified:
             if existence.verify_password(password):
-                access_token = create_access_token(identity=existence.id)
-                refresh_token = create_refresh_token(identity=existence.id)
+                access_token = create_access_token(identity=str(existence.id))
+                refresh_token = create_refresh_token(identity=str(existence.id))
                 response = jsonify({"message":"User logged in successfully","user":existence.to_dic()})
                 set_access_cookies(response,access_token)
                 set_refresh_cookies(response,refresh_token)
