@@ -7,6 +7,7 @@ from models import db
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from auth import auth_bp
+from uploads import uploads_bp  
 
 
 app = Flask(__name__)
