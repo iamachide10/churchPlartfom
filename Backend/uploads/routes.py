@@ -6,7 +6,7 @@ from models import AudioStorage,MainAudio
 from app_logging import normal_logs
 from models import db
 from tasks import check_file_validity
-from celery_app import celery
+from celery_utils import celery
 from celery.result import AsyncResult
 
 my_only = normal_logs()
