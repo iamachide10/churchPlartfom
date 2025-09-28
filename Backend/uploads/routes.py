@@ -6,8 +6,8 @@ from models import AudioStorage,MainAudio
 from app_logging import normal_logs
 from models import db
 from tasks import check_file_validity
-from celery_utils import celery
-from celery.result import AsyncResult
+
+
 
 my_only = normal_logs()
 
@@ -51,17 +51,3 @@ def audio_handling():
         db.session.rollback()
         my_only.error(f"An error occurred during audio uploads:{e}")
         return jsonify({"status":"error","message":"Oops couldn't upload audio, an error occurred"})
-
-@uploads_bp.route("/task-status/<task_id>")
-def task_status(task_id):
-    result = AsyncResult(task_id, app=celery)
-    if result.state == "PENDING":
-        return {"state": result.state, "message": "Task is still waiting in the queue..."}
-    elif result.state == "STARTED":
-        return {"state": result.state, "message": "Task is currently running..."}
-    elif result.state == "SUCCESS":
-        return {"state": result.state, "result": result.result}
-    elif result.state == "FAILURE":
-        return {"state": result.state, "reason": str(result.info)}
-    else:
-        return {"state": result.state, "message": "Unknown state"}

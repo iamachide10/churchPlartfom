@@ -1,6 +1,5 @@
 from celery import Celery
 import os
-from flask import current_app
 
 def make_celery(app):
     # Step 1: Load from ENV instead of hardcoding
@@ -28,5 +27,3 @@ def make_celery(app):
 
     celery.Task = ContextTask
     return celery
-
-celery = make_celery(current_app)

@@ -2,20 +2,21 @@ from flask import Flask , jsonify
 from models import User
 from config import Config
 import os
+from celery_utils import make_celery
 from celery_utils import celery 
 from models import db
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from auth import auth_bp
 from uploads import uploads_bp  
-
+from celery.result import AsyncResult
 
 app = Flask(__name__)
 CORS(app,resources={r"/auth/*": {"origins": "https://min-elistarminstry.onrender.com"}},supports_credentials=True)
 app.config.from_object(Config)
 
 
-
+celery = make_celery(app)
 celery.autodiscover_tasks(["tasks"])
 db.init_app(app)
 JWTManager(app)
@@ -42,19 +43,25 @@ for rule in app.url_map.iter_rules():
     print(">>> Route:", rule, "methods:", rule.methods)
 
 
-@app.route("/clear-users", methods=["GET"])
-def clear_users():
-    try:
-        num_rows = db.session.query(User).delete()  # delete all users
-        db.session.commit()
-        return jsonify({"message": f"{num_rows} users deleted"}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
 
 @app.route("/")
 def home():
     return "Welcome to the Church Platform Backend!"
+
+
+@app.route("/task-status/<task_id>")
+def task_status(task_id):
+    result = AsyncResult(task_id, app=celery)
+    if result.state == "PENDING":
+        return {"state": result.state, "message": "Task is still waiting in the queue..."}
+    elif result.state == "STARTED":
+        return {"state": result.state, "message": "Task is currently running..."}
+    elif result.state == "SUCCESS":
+        return {"state": result.state, "result": result.result}
+    elif result.state == "FAILURE":
+        return {"state": result.state, "reason": str(result.info)}
+    else:
+        return {"state": result.state, "message": "Unknown state"}
 
 
 if __name__ == "__main__":
