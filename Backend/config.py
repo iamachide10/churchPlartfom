@@ -23,7 +23,7 @@ class Config:
     JWT_COOKIE_HTTPONLY = True
     JWT_ACCESS_COOKIE_PATH = "/"
     JWT_REFRESH_COOKIE_PATH = "/refresh-tokens"
-    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
-    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+    broker_url = os.getenv("broker_url")
+    result_backend = os.getenv("result_backend")
     AUDIO_UPLOAD = os.path.join(BASE_DIR, "shark", "audios")
     TEMP_UPLOAD = os.path.join(BASE_DIR, "temp", "uploads")

@@ -1,25 +1,34 @@
 from celery import Celery
 import os
+from kombu import Connection
+import ssl
 
 def make_celery(app):
-    # Step 1: Load from ENV instead of hardcoding
     app.config.update(
-        CELERY_BROKER_URL=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
-        CELERY_RESULT_BACKEND=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0"),
-        CELERY_INCLUDE=["tasks"],  # 👈 still valid
+    broker_url=os.getenv("broker_url", "redis://localhost:6379/0"),
+    result_backend=os.getenv("result_backend", "redis://localhost:6379/0"),
+    include=["tasks"],
     )
 
-    # Step 2: Create Celery instance
     celery = Celery(
-        app.import_name,
-        broker=app.config["CELERY_BROKER_URL"],
-        backend=app.config["CELERY_RESULT_BACKEND"],
-        include=app.config["CELERY_INCLUDE"],
-    )
+    app.import_name,
+    broker=app.config["broker_url"],
+    backend=app.config["result_backend"],
+    include=app.config["include"],
+)
 
     celery.conf.update(app.config)
 
-    # Step 3: Ensure Flask context is used inside tasks
+    # 🔑 Force SSL (important for Upstash rediss://)
+    celery.conf.update(
+        broker_use_ssl={
+            "ssl_cert_reqs": ssl.CERT_NONE
+        },
+        redis_backend_use_ssl={
+            "ssl_cert_reqs": ssl.CERT_NONE
+        },
+    )
+
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
             with app.app_context():
