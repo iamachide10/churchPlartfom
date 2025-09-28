@@ -2,7 +2,7 @@ from flask import Flask , jsonify
 from models import User
 from config import Config
 import os
-from celery_utils import make_celery
+from celery_utils import celery 
 from models import db
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -15,7 +15,7 @@ CORS(app,resources={r"/auth/*": {"origins": "https://min-elistarminstry.onrender
 app.config.from_object(Config)
 
 
-celery = make_celery(app)
+
 celery.autodiscover_tasks(["tasks"])
 db.init_app(app)
 JWTManager(app)
