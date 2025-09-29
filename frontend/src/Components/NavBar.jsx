@@ -4,7 +4,7 @@ import { logOutNavLinks } from "../Constant";
 import myImage from "../assets/logo.jpg";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useAuth } from "../context/AuthContext";
+
 
 
 export default function NavBar() {
