@@ -76,12 +76,12 @@ def login():
             if existence.verify_password(password):
                 access_token = create_access_token(identity=str(existence.id))
                 refresh_token = create_refresh_token(identity=str(existence.id))
-                response = jsonify({"message":"User logged in successfully","user":existence.to_dic()})
+                response = jsonify({"message":"User logged in successfully","user":existence.to_dic() ,"status":"s" })
                 set_access_cookies(response,access_token)
                 set_refresh_cookies(response,refresh_token)
                 return response
             else:
-                return jsonify({"message":"Password is invalid"})
+                return jsonify({"message":"Password is invalid" , "status":"e"})
         else:
             try:
                 raw_token = secrets.token_urlsafe(32)
@@ -89,13 +89,13 @@ def login():
                 storing.set_hash(raw_token)
                 db.session.add(storing)
                 db.session.commit() 
-                return jsonify({"issue":"verification","message":"Email not verified. Please verify your account.","resend_verification_url":url_for("resend_verification",token=raw_token,_external=True)})
+                return jsonify({"status":"e","message":"Email not verified. Please verify your account.","resend_verification_url":url_for("resend_verification",token=raw_token,_external=True)})
             except Exception as e:
                 db.session.rollback()
                 my_log.error(f"Error: {e}")
                 return jsonify({"message":"Oops something went wrong when trying to login."})    
     else:   
-        return jsonify({"message":"Please sign in first."})
+        return jsonify({"message":"Please sign up first."})
     
 @auth_bp.route("/logout",methods=["POST"])
 def close():

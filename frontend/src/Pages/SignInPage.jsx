@@ -4,36 +4,36 @@ const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isSignedIn, setIsSignedIn] = useState(false);
 
-  // Dummy credentials
-  const validUser = {
-    email: "test@example.com",
-    password: "123456",
-  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-
-    const user=localStorage.getItem("users")
-    if (email === validUser.email && password === validUser.password) {
-      setIsSignedIn(true);
-      setError("");
-    } else {
-      setError("❌ Invalid email or password");
-      setIsSignedIn(false);
+    const credentials = { email, password };
+    const API_URL = import.meta.env.VITE_API_URL;
+    const url = `${API_URL}/auth/login`;
+    const response=await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(credentials),
+    })
+    const text= await response.text()
+    let data;
+    try{
+      data=JSON.parse(text)
+    }catch{
+      throw new Error(`Invalid JSON response: ${text}`)
     }
+    const {status,message}=data
+    if(status==="e"){
+      setError(typeof message==="string" ? message :JSON.stringify(message))
+    }
+    else if(status==="s"){
+      setError("")
+      window.location.href="/"
+    } 
   };
 
-  if (isSignedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        <h1 className="text-2xl font-bold text-green-400">
-          ✅ Signed in successfully! Welcome back 
-        </h1>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
