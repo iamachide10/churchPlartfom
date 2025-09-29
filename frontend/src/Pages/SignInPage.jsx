@@ -32,8 +32,8 @@ const SignIn = () => {
     }
     else if(status==="s"){
       setError("")
-      login(data.user)
-      
+      login(data.user.userName)
+
       window.location.href="/"
     } 
   };
