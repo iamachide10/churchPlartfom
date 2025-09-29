@@ -11,6 +11,7 @@ from tasks import check_file_validity
 
 my_only = normal_logs()
 
+
 @uploads_bp.route("/upload-audio",methods=["POST"])
 def audio_handling():
     audios = request.files.getlist("audios")
@@ -50,4 +51,4 @@ def audio_handling():
     except Exception as e:
         db.session.rollback()
         my_only.error(f"An error occurred during audio uploads:{e}")
-        return jsonify({"status":"error","message":"Oops couldn't upload audio, an error occurred"})
+        return jsonify({"status":"e","message":"Oops couldn't upload audio, an error occurred"})
