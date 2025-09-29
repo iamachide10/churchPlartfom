@@ -17,8 +17,7 @@ def celery_logs():
 def normal_logs():
     normal_logger = logging.getLogger("shark_logger")
     normal_logger.setLevel(logging.INFO)
-    os.makedirs("logs",exist_ok=True)
-    file_handler = RotatingFileHandler("logs/normal_logs",maxBytes=1_000_000,backupCount=5)
+    file_handler = logging.StreamHandler()
     file_handler.setLevel(logging.WARN)
     format = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
     file_handler.setFormatter(format)
