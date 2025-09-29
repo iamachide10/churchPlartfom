@@ -70,7 +70,7 @@ def verify_email():
     try:
         check_match.is_verified = True
         db.session.delete(verify)
-        db.seesion.commit()
+        db.session.commit()
         return jsonify({"status":"success","message":"User account was successfully verified"})
     except Exception as e:
         db.session.rollback()
