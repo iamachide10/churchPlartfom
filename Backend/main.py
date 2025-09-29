@@ -9,12 +9,13 @@ from flask_jwt_extended import JWTManager
 from auth import auth_bp
 from uploads import uploads_bp  
 from celery.result import AsyncResult
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 CORS(app,resources={r"/auth/*": {"origins": "https://min-elistarminstry.onrender.com"}},supports_credentials=True)
 app.config.from_object(Config)
 
-
+migrate = Migrate(app, db)
 celery = make_celery(app)
 celery.autodiscover_tasks(["tasks"])
 db.init_app(app)
