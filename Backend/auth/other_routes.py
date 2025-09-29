@@ -39,7 +39,7 @@ def verification_resend():
         subject = "Please verify your account."
         link = url_for("verify_email",token=token,_external=True)
         body = f"Please verify your account by clicking on this link below.\n\n\t{link}"
-        status = send_emails.(verify.email,subject,body)
+        status = send_emails(verify.email,subject,body)
         if status is None:
             return jsonify({"status":"error","message":"Error occurred when sending email, please request for another verification email link"})
         elif status == "600":
@@ -97,7 +97,7 @@ def reset_password():
         subject = "Reset Your Password"
         link = url_for("password_reset",token=token,_external=True)
         body = f"Click on this link to reset your password.\n\n{link}"
-        status = send_emails.(check_validity.email,subject,body)
+        status = send_emails(check_validity.email,subject,body)
         if status is None:
             return jsonify({"status":"error","message":"Error occurred when sending reset password link, please request for another link."})
         elif status == "600":
