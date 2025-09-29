@@ -39,7 +39,7 @@ def sign_up():
         expiration_time = datetime.utcnow() + timedelta(minutes=15)
         reset_token = ResetToken(user_id=new_user.id,token=token,expires_at=expiration_time)
         db.session.add(reset_token)
-        # db.session.commit() 
+        db.session.commit() 
         subject = "Please verify your email"
         link = url_for("auth.verify_email",token=token,_external=True)
         body = f"Please click on the link to verify your email.\n\n{link}"
