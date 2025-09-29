@@ -41,7 +41,7 @@ class ResetToken(db.Model):
 
 class SessionStorage(db.Model):
     id = db.Column(db.Integer,primary_key=True)
-    User_id = db.Column(db.Integer,db.ForeignKey("user.id"),nullable=False)
+    user_id = db.Column(db.Integer,db.ForeignKey("user.id"),nullable=False)
     token = db.Column(db.String(320),nullable=False)
     used = db.Column(db.Boolean,default=False)
     user = db.relationship("User",back_populates="session_storage")
