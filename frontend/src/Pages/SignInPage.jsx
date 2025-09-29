@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const { login } = useAuth();
 
 
   const handleSubmit = async(e) => {
@@ -30,6 +32,8 @@ const SignIn = () => {
     }
     else if(status==="s"){
       setError("")
+      login(data.user)
+      
       window.location.href="/"
     } 
   };

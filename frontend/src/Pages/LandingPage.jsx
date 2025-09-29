@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 
 function LandingPage() {
-  const {user}=useState();
+  const {user}=useAuth();
 
   return (
     <div className="bg-gray-900 text-white">

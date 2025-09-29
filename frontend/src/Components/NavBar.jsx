@@ -4,13 +4,14 @@ import { logOutNavLinks } from "../Constant";
 import myImage from "../assets/logo.jpg";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const {user}=useAuth();    
 
-  const {user}=useAuth(); 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
@@ -55,6 +56,7 @@ export default function NavBar() {
                   {nav.name}
                 </NavLink>
               ))}
+              {user && <span className="text-gray-300">Hello, {user.name}</span>}
             </div>
 
             {/* Mobile button */}
@@ -120,6 +122,7 @@ export default function NavBar() {
                     {nav.name}
                   </NavLink>
                 ))}
+                {user && <span className="block px-4 py-2 text-gray-300">Hello, {user.name}</span>}
               </div>
             )}
           </div>
