@@ -39,8 +39,13 @@ def verification_resend():
         subject = "Please verify your account."
         link = url_for("verify_email",token=token,_external=True)
         body = f"Please verify your account by clicking on this link below.\n\n\t{link}"
-        status = send_emails.delay(verify.email,subject,body)
-        return jsonify({"message":"A link has been sent to your inbox, click on it to verify your email"})
+        status = send_emails.(verify.email,subject,body)
+        if status is None:
+            return jsonify({"status":"error","message":"Error occurred when sending email, please request for another verification email link"})
+        elif status == "600":
+            return jsonify({"status":"error","message":"Oops email never get sent, please tryagain another time."})
+        else:
+            return jsonify({"status":"s","message":"Verification email sent successfully,please check your inbox"})
     except Exception as e:
         db.session.rollback()
         mine_log.error(f"Error: {e}")
@@ -92,8 +97,13 @@ def reset_password():
         subject = "Reset Your Password"
         link = url_for("password_reset",token=token,_external=True)
         body = f"Click on this link to reset your password.\n\n{link}"
-        task_id = send_emails.delay(check_validity.email,subject,body)
-        return jsonify({"message":"If an account with this email exists, we've sent a password reset link."})
+        status = send_emails.(check_validity.email,subject,body)
+        if status is None:
+            return jsonify({"status":"error","message":"Error occurred when sending reset password link, please request for another link."})
+        elif status == "600":
+            return jsonify({"status":"error","message":"Oops password link never get sent, please tryagain another time."})
+        else:
+            return jsonify({"status":"s","message":"Reset password link has been sent successfully,please check your inbox"})
     except Exception as e:
         db.session.rollback()
         mine_log.error(f"Error occurred with {check_validity.id}: {e}")

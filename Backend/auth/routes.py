@@ -38,14 +38,18 @@ def sign_up():
         token = secrets.token_urlsafe(32)
         expiration_time = datetime.utcnow() + timedelta(minutes=15)
         reset_token = ResetToken(user_id=new_user.id,token=token,expires_at=expiration_time)
-        db.session.add(reset_token) 
+        db.session.add(reset_token)
+        db.session.commit() 
         subject = "Please verify your email"
         link = url_for("auth.verify_email",token=token,_external=True)
         body = f"Please click on the link to verify your email.\n\n{link}"
-        task = send_emails.delay(new_user.email,subject,body)
-        task_id=task.id
-        return jsonify({"status":"s","message":"User created successfully, we've sent a verification email, please check your inbox","task_id":task.id})
-        db.session.commit()
+        status = send_emails(new_user.email,subject,body)
+        if status is None:
+            return jsonify({"status":"error","message":"Error occurred when sending email, please request for another verification email"})
+        elif status == "600":
+            return jsonify({"status":"error","message":"Oops email never get sent, please tryagain another time."})
+        else:
+            return jsonify({"status":"s","message":"User created successfully, we've sent a verification email, please check your inbox"})
     except Exception as e:
         traceback.print_exc()
         print(">>> Exception occurred:", e)
@@ -97,5 +101,7 @@ def login():
 def close():
     response = jsonify({"message":"User logged out successfully"})
     unset_jwt_cookies(response)
-    return response                      
-    
+    return response                          
+
+
+
