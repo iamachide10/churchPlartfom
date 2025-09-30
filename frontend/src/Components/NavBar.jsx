@@ -67,7 +67,6 @@ export default function NavBar() {
             <div className="hidden md:flex items-center gap-6">
               {NavList.map((nav) => (
                 <NavLink
-                  onClick={!nav.href && logOut }
                   key={nav.name}
                   to={nav.href}
                   className={({ isActive }) =>
@@ -81,7 +80,7 @@ export default function NavBar() {
                   {nav.name}
                 </NavLink>
               ))}
-              {user && <span className="text-gray-300">Hello, {user.name}</span>}
+              {user && <button  onClick={logOut} className="block px-4 py-2 rounded-md bg-yellow-400 text-black font-semibold">Log Out</button>}
             </div>
 
 

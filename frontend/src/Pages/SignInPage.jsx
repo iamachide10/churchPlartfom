@@ -6,6 +6,7 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { login } = useAuth();
+  const [verification, setVerification]=useState(null)
 
 
   const handleSubmit = async(e) => {
@@ -23,10 +24,14 @@ const SignIn = () => {
     let data;
     try{
       data=JSON.parse(text)
+      
     }catch{
       throw new Error(`Invalid JSON response: ${text}`)
     }
-    const {status,message}=data
+    const {status,message ,resend_verification_url}=data
+    if(resend_verification_url){
+      setVerification(resend_verification_url)
+    }
     if(status==="e"){
       setError(typeof message==="string" ? message :JSON.stringify(message))
     }
@@ -75,7 +80,18 @@ const SignIn = () => {
 
         {/* Error */}
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-
+        {verification && (
+          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
+            <a
+              href={verification}
+              className="text-yellow-600 underline" 
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Resend Verification Email
+            </a>
+          </div>
+        )}
         {/* Button */}
         <button
           type="submit"
