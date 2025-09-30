@@ -9,6 +9,20 @@ const SignIn = () => {
   const [verification, setVerification]=useState(null)
 
 
+    const handleResend = async () => {
+    try {
+      const res = await fetch(response.resend_verification_url, {
+        method: "POST"
+      });
+      const data = await res.json();
+      setResendMessage(data.message);
+    } catch (err) {
+      setResendMessage("Something went wrong. Please try again later.");
+    }
+  };
+
+
+
   const handleSubmit = async(e) => {
     e.preventDefault();
     const credentials = { email, password };
@@ -38,7 +52,6 @@ const SignIn = () => {
     else if(status==="s"){
       setError("")
       login(data.user.userName)
-
       window.location.href="/"
     } 
   };
@@ -80,18 +93,14 @@ const SignIn = () => {
 
         {/* Error */}
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+        
         {verification && (
-          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
-            <a
-              href={verification}
-              className="text-yellow-600 underline" 
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Resend Verification Email
-            </a>
-          </div>
+       <button onClick={handleResend} className="mb-4 text-blue-400 underline">
+          Resend Verification Email
+       </button>
         )}
+
+
         {/* Button */}
         <button
           type="submit"

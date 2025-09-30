@@ -37,13 +37,12 @@ export default function NavBar() {
         const m=data.message
         if(data.message="User logged out successfully"){
           logout()
-          window.href="/"
+          window.location.href="/"
         }
       }catch(e){
         setMess(e)
       }
   }
-
 
   return (
     <header

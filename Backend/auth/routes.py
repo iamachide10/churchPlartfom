@@ -89,7 +89,7 @@ def login():
                 storing.set_hash(raw_token)
                 db.session.add(storing)
                 db.session.commit() 
-                return jsonify({"status":"e","message":"Email not verified. Please verify your account.","verification_url":url_for("auth.verify_email",token=raw_token,_external=True)})
+                return jsonify({"status":"e","message":"Email not verified. Please verify your account.","resend_verification_url":url_for("auth.verification_resend",token=raw_token,_external=True)})
             except Exception as e:
                 db.session.rollback()
                 my_log.error(f"Error: {e}")
