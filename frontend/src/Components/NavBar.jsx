@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const {user}=useAuth();    
+  const {user,logout}=useAuth();  
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -19,6 +19,30 @@ export default function NavBar() {
   }, []);
 
   const NavList = user? logInNavLinks :logOutNavLinks;
+
+  
+  const logOut= async()=>{
+      const API_URL = import.meta.env.VITE_API_URL;
+      const url = `${API_URL}/auth/logout`;
+      const options={
+        method:"POST",
+        Credentials :"include",
+        headers:{
+          "Content-Type":"application/json",
+        }
+      }
+      try{
+        const response=await fetch(url,options)
+        const data= await response.json()
+        const m=data.message
+        if(data.message="User logged out successfully"){
+          logout()
+          window.href="/"
+        }
+      }catch(e){
+        setMess(e)
+      }
+  }
 
 
   return (
@@ -43,7 +67,8 @@ export default function NavBar() {
             <div className="hidden md:flex items-center gap-6">
               {NavList.map((nav) => (
                 <NavLink
-                  key={nav.id}
+                  onClick={!nav.href && logOut }
+                  key={nav.name}
                   to={nav.href}
                   className={({ isActive }) =>
                     `block px-4 py-2 rounded-md ${
@@ -58,6 +83,7 @@ export default function NavBar() {
               ))}
               {user && <span className="text-gray-300">Hello, {user.name}</span>}
             </div>
+
 
             {/* Mobile button */}
             <button

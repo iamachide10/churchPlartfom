@@ -97,6 +97,8 @@ def login():
     else:   
         return jsonify({"message":"Please sign up first."})
     
+
+    
 @auth_bp.route("/logout",methods=["POST"])
 def close():
     response = jsonify({"message":"User logged out successfully"})
