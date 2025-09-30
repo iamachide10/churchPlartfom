@@ -147,7 +147,7 @@ export default function NavBar() {
                     {nav.name}
                   </NavLink>
                 ))}
-                {user && <span className="block px-4 py-2 text-gray-300">Hello, {user.name}</span>}
+                  {user && <button  onClick={logOut} className="block px-4 py-2 rounded-md bg-yellow-400 text-black font-semibold">Log Out</button>}
               </div>
             )}
           </div>
