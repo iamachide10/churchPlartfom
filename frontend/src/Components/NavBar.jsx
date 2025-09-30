@@ -129,7 +129,7 @@ export default function NavBar() {
               <div
                 id="mobile-menu"
                 role="menu"
-                className="absolute sm:w-full right-0 top-full mt-2 w-48 rounded-md bg-black/90 backdrop-blur-sm border border-gray-800 shadow-lg md:hidden"
+                className="absolute  right-0 top-full mt-2 w-48 rounded-md bg-black/90 backdrop-blur-sm border border-gray-800 shadow-lg md:hidden"
               >
                 {NavList.map((nav) => (
                   <NavLink
@@ -147,7 +147,7 @@ export default function NavBar() {
                     {nav.name}
                   </NavLink>
                 ))}
-                  {user && <button  onClick={logOut} className="block px-4 py-2 rounded-md bg-yellow-400 text-black font-semibold">Log Out</button>}
+                {user && <button  onClick={logOut} className="w-full block px-4 py-2 rounded-md bg-yellow-400 text-black font-semibold">Log Out</button>}
               </div>
             )}
           </div>
