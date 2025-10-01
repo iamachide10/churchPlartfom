@@ -38,7 +38,7 @@ def verification_resend():
         db.session.add(reset_token)
         db.session.commit()
         subject = "Please verify your account."
-        link = url_for("verify_email",token=token,_external=True)
+        link = url_for("auth.verify_email",token=token,_external=True)
         body = f"Please verify your account by clicking on this link below.\n\n\t{link}"
         status = send_emails(verify.email,subject,body)
         if status is None:
