@@ -42,8 +42,11 @@ def sign_up():
         db.session.commit() 
         subject = "Please verify your email"
         link = url_for("auth.verify_email",token=token,_external=True)
-        body = f"Please click on the link to verify your email.\n\n{link}"
-        status = send_emails(new_user.email,subject,body)
+        html_body = f"""
+        <p>Please verify your account by clicking the link below:</p>
+        <p><a href="{link}">Verify Account</a></p>
+        """
+        status = send_emails(verify.email, subject, html_body, html=True)
         if status is None:
             return jsonify({"status":"error","message":"Error occurred when sending email, please request for another verification email"})
         elif status == "600":
@@ -95,7 +98,7 @@ def login():
                 my_log.error(f"Error: {e}")
                 return jsonify({"message":"Oops something went wrong when trying to login."})    
     else:   
-        return jsonify({"message":"Please sign up first."})
+        return jsonify({"status":"e", "message":"Please sign up first."})
     
 
 

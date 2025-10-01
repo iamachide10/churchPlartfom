@@ -8,7 +8,7 @@ from mutagen import File
 logger = celery_logs()
 me_logger = normal_logs()
 
-def send_emails(recipient,subject,body):
+def send_emails(recipient,subject,body,html=False):
         api_key = current_app.config.get("SENDGRID_API_KEY")
         if not api_key:
               me_logger.warning("SendGrid Api key is missing")
@@ -17,7 +17,10 @@ def send_emails(recipient,subject,body):
             sg = SendGridAPIClient(api_key=current_app.config["SENDGRID_API_KEY"])
             from_email = Email(current_app.config["FROM_EMAIL"],current_app.config["FROM_NAME"])
             to_email = To(recipient)
-            content = Content("text/plain",body)
+            if html:
+                content = Content("text/html",body)
+            else:               
+                 content = Content("text/plain",body)
             mail = Mail(from_email,to_email,subject,content)
 
             response = sg.send(mail) 
