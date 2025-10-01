@@ -8,26 +8,36 @@ from mutagen import File
 logger = celery_logs()
 me_logger = normal_logs()
 
-def send_emails(recipient,subject,body,html=False):
-        api_key = current_app.config.get("SENDGRID_API_KEY")
-        if not api_key:
-              me_logger.warning("SendGrid Api key is missing")
-              return "600"
-        try:
-            sg = SendGridAPIClient(api_key=current_app.config["SENDGRID_API_KEY"])
-            from_email = Email(current_app.config["FROM_EMAIL"],current_app.config["FROM_NAME"])
-            to_email = To(recipient)
-            if html:
-                content = Content("text/html",body)
-            else:               
-                 content = Content("text/plain",body)
-            mail = Mail(from_email,to_email,subject,content)
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To, Content
 
-            response = sg.send(mail) 
-            return "success"
-        except Exception as e:
-              me_logger.error(f"Failed to send email to {recipient}: {e}")
-              return None
+def send_emails(recipient, subject, text_body=None, html_body=None):
+    api_key = current_app.config.get("SENDGRID_API_KEY")
+    if not api_key:
+        me_logger.warning("SendGrid Api key is missing")
+        return "600"
+
+    try:
+        from_email = Email(current_app.config["FROM_EMAIL"], current_app.config["FROM_NAME"])
+        to_email = To(recipient)
+
+        # Create mail object (no content yet)
+        mail = Mail(from_email=from_email, to_emails=to_email, subject=subject)
+
+        # Always include text version (fallback)
+        if text_body:
+            mail.add_content(Content("text/plain", text_body))
+
+        # Add HTML version (for clickable link)
+        if html_body:
+            mail.add_content(Content("text/html", html_body))
+
+        sg = SendGridAPIClient(api_key)
+        response = sg.send(mail)
+        return "success"
+    except Exception as e:
+        me_logger.error(f"Failed to send email to {recipient}: {e}")
+        return None
 
 
 def check_file_validity(audio_id):

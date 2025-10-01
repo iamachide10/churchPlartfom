@@ -39,14 +39,13 @@ def verification_resend():
         db.session.commit()
         subject = "Please verify your account."
         link = url_for("auth.verify_email", token=token, _external=True)
+     
+        text_body = f"Please verify your account by clicking this link: {link}"
         html_body = f"""
         <p>Please verify your account by clicking the link below:</p>
         <p><a href="{link}">Verify Account</a></p>
         """
-        status = send_emails(verify.email, subject, html_body, html=True)
-
-        body = f"Please verify your account by clicking on this link below. \n\n\t {link}"
-        status = send_emails(verify.email,subject,body)
+        status = send_emails(new_user.email, subject, html_body, text_body )
         if status is None:
             return jsonify({"status":"e","message":"Error occurred when sending email, please request for another verification email link"})
         elif status == "600":
