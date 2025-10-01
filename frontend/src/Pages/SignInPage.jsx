@@ -24,6 +24,7 @@ const SignIn = () => {
       
     } catch (err) {
       setResendMessage("Something went wrong. Please try again later.");
+      setError("")
       console.error("Error :" + err)
     }
   };

@@ -45,7 +45,7 @@ def verification_resend():
         <p>Please verify your account by clicking the link below:</p>
         <p><a href="{link}">Verify Account</a></p>
         """
-        status = send_emails(new_user.email, subject, html_body, text_body )
+        status = send_emails(verify.email, subject, html_body, text_body )
         if status is None:
             return jsonify({"status":"e","message":"Error occurred when sending email, please request for another verification email link"})
         elif status == "600":
