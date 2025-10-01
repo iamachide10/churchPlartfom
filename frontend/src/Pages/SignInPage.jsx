@@ -6,18 +6,24 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { login } = useAuth();
+  const [resendMessage,setResendMessage]=useState("")
+  
   const [verification, setVerification]=useState(null)
 
 
-    const handleResend = async () => {
+  const handleResend = async () => {
     try {
-      const res = await fetch(response.resend_verification_url, {
-        method: "POST"
+      const res = await fetch(verification, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
       const data = await res.json();
       setResendMessage(data.message);
+      setError("")
     } catch (err) {
       setResendMessage("Something went wrong. Please try again later.");
+      console.error("Error :" + err)
     }
   };
 
@@ -93,13 +99,14 @@ const SignIn = () => {
 
         {/* Error */}
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+        {resendMessage && <p className="text-white-400 text-sm mb-4">{resendMessage}</p>}
         
         {verification && (
        <button onClick={handleResend} className="mb-4 text-blue-400 underline">
           Resend Verification Email
        </button>
         )}
-
+         {resendMessage && <p className="text-white-400 text-sm mb-4">{resendMessage}</p>}
 
         {/* Button */}
         <button

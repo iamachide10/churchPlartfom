@@ -77,6 +77,8 @@ def verify_email():
         mine_log.error(f"Error occurred with {verify.user_id}: {e}")
         return jsonify({"status":"failed","message":"Oops an error occurred during verification."})
     
+
+    
 @auth_bp.route("/reset-password-request",methods=["POST"])
 def reset_password():
     data = get_json(silent=True)

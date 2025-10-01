@@ -8,21 +8,16 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  const [taskMessage,setTaskMessage]=useState("")
-  console.log("VITE_API_URL from env:", import.meta.env.VITE_API_URL);
 
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  // /check password match
   if (password !== confirmPassword) {
     setError("Passwords do not match");
     return;
   }
 
   const credentials = { name, email, password };
-
-  // get API URL from environment
   const API_URL = import.meta.env.VITE_API_URL;
   const url = `${API_URL}/auth/register`;
 
@@ -33,8 +28,6 @@ const handleSubmit = async (e) => {
       credentials: "include",
       body: JSON.stringify(credentials),
     });
-
-    // check if backend sent a valid JSON
     const text = await response.text();
     let data;
     try {
@@ -46,31 +39,21 @@ const handleSubmit = async (e) => {
     const { status, message} = data;
 
 
-    const task_id=data.task_id
-    console.log(task_id)
-    if(task_id){
-      const url=`${API_URL}/task-status/${task_id}`
-      const response = await fetch(url)
-      const text= await response.text()
-      try{
-        data=JSON.parse(text)
-      }catch{
-        throw new Error(`Invalid JSON response: ${text}`)
-      }
-      setTaskMessage(typeof data.massage==="string" ? data.massage :JSON.stringify(data.message))
-    }
-
-
     if (status === "e") {
       setError(typeof message === "string" ? message : JSON.stringify(message));
+      setSuccess("")
     } else if (status === "s") {
       setSuccess(typeof message === "string" ? message : JSON.stringify(message));
+      setError("")
     } else {
       setError("Unexpected response from server");
+      setSuccess("")
     }
+
   } catch (err) {
     console.error("❌ Request failed:", err);
     setError(err.message || "Something went wrong");
+    setSuccess("")
   }
 };
 
@@ -135,8 +118,7 @@ const handleSubmit = async (e) => {
         {/* Success & Error Messages */}
         {success && <p className="text-green-400 text-sm mb-4">{success}</p>} 
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-        {taskMessage &&  <p className="text-green-400 text-sm mb-4">{taskMessage}</p>}
-
+      
         {/* Button */}
         <button
           type="submit"
