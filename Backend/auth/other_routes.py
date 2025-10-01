@@ -2,6 +2,7 @@ from . import auth_bp
 from app_logging import normal_logs
 from flask import jsonify,request
 import secrets
+from flask import url_for
 from tasks import send_emails
 from models import User,ResetToken,SessionStorage,db
 from datetime import datetime,timedelta
@@ -41,9 +42,9 @@ def verification_resend():
         body = f"Please verify your account by clicking on this link below.\n\n\t{link}"
         status = send_emails(verify.email,subject,body)
         if status is None:
-            return jsonify({"status":"error","message":"Error occurred when sending email, please request for another verification email link"})
+            return jsonify({"status":"e","message":"Error occurred when sending email, please request for another verification email link"})
         elif status == "600":
-            return jsonify({"status":"error","message":"Oops email never get sent, please tryagain another time."})
+            return jsonify({"status":"e","message":"Oops email never get sent, please tryagain another time."})
         else:
             return jsonify({"status":"s","message":"Verification email sent successfully,please check your inbox"})
     except Exception as e:

@@ -21,6 +21,7 @@ const SignIn = () => {
       const data = await res.json();
       setResendMessage(data.message);
       setError("")
+      
     } catch (err) {
       setResendMessage("Something went wrong. Please try again later.");
       console.error("Error :" + err)
@@ -99,7 +100,6 @@ const SignIn = () => {
 
         {/* Error */}
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-        {resendMessage && <p className="text-white-400 text-sm mb-4">{resendMessage}</p>}
         
         {verification && (
        <button onClick={handleResend} className="mb-4 text-blue-400 underline">
