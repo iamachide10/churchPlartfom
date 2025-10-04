@@ -62,9 +62,11 @@ def audio_handling():
         if status != "not_file":
             with open(status,"rb") as f:
                 s3.upload_fileobj(f,bucket_name,unique_name,ExtraArgs={"ACL":"private","ContentType":status.mimetype})
+                
             audio_storage = AudioStorage(preacher=preacher,title=title,timestamp=timestamp,filepath=file_url,original_filename=filename,storage_name=unique_name)
             db.session.add(audio_storage)
             success_audios.append(filename)
+
         else:
             failed_audios.append(filename)
     try:

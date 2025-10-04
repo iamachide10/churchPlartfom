@@ -47,7 +47,7 @@ class SessionStorage(db.Model):
     user = db.relationship("User",back_populates="session_storage")
 
     def set_hash(self,token):
-        self.token = generate_password_hash(token)
+        self.token = generate_password_hash(token,method="pbkdf2:sha256",salt_length=16)
 
     def check_hash(self,input_token):
         return check_password_hash(self.token,input_token)
