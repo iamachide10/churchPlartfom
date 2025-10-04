@@ -30,10 +30,12 @@ def send_emails(self,recipient,subject,body):
 def check_file_validity(audio_id):
     check = MainAudio.query.filter_by(id=audio_id).first()
     if not check:
-        raise Exception("Couldn't process specific audio")
+        me_logger.warning("Couldn't specific audio to process")
+        return "none"
     verify = AudioStorage.query.filter_by(id=check.id).first()
     if not verify:
-        return Exception("Couldn't process specific audio")
+        me_logger.warning("Couldn't identify partucular audio to process")
+        return "empty"
     filepath = check.filepath
     try:
         audio = File(filepath)
@@ -43,26 +45,26 @@ def check_file_validity(audio_id):
         db.session.delete(verify)
         db.session.commit()
         logger.error(f"An error occurred during file validation:{e}")
-        return {"message":"Please try uploading a real audio"}
+        return "unreal"
     if audio is None:
         os.remove(filepath)
         db.session.delete(check)
         db.session.delete(verify)
         db.session.commit()
-        raise Exception("Please upload a real audio")
+        return "notreal"
     os.makedirs(current_app.config.get("AUDIO_UPLOAD"),exist_ok=True)
     export_path = os.path.join(current_app.config.get("AUDIO_UPLOAD"),check.filename)
     try:
         audio_segment = AudioSegment.from_file(filepath)
         audio_segment.export(export_path,format="mp3",bitrate="192k")
         os.remove(filepath)
-        return {"message":f"Audio saved successfully"}
+        return "realfile"
     except Exception as e:
         os.remove(filepath)
         db.session.delete(check)
         db.session.delete(verify)
         db.session.commit()
         logger.error(f"Error, audio segment couldn't detect format:{e}")
-        return {"message":"Audio is corrupted"}
+        return "fileerror"
 
 

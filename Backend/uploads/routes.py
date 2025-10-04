@@ -11,6 +11,8 @@ from tasks import check_file_validity
 
 my_only = normal_logs()
 
+def get_s3_client():
+    return boto3.client("s3",
 @uploads_bp.route("/upload-audio",methods=["POST"])
 def audio_handling():
     audios = request.files.getlist("audios")
@@ -32,21 +34,33 @@ def audio_handling():
         unique_name = f"{uuid.uuid4().hex}.mp3"
         file_path = os.path.join(upload_folder,unique_name)
         audio.save(file_path)
-        
+
         new_audio = MainAudio(filepath=file_path,filename=unique_name)
         saved_audios.append(new_audio)
         new_details = AudioStorage(preacher=preacher,title=title,time_stamp=timestamp)
         db.session.add(new_audio)
         db.session.add(new_details)
     try:
-        audio_id=[]
-        task_id_list=[]
+        failed_audios=[]
+        success_audios=[]
         db.session.commit()
         for latest_audio in saved_audios:
-            task = check_file_validity.delay(latest_audio.id)
-            audio_id.append(latest_audio.id)
-            task_id_list.append(task.id)
-        return jsonify({"message":"Audios uploaded validation are still going on at the background","task_id":task_id_list,"audio_id":audio_id})
+            task = check_file_validity(latest_audio.id)
+            if task == "none":
+                state = "couldn't identify specific audio process"
+                failed_audios.append(state)
+            elif task == "empty":
+                state = "couldn't identify specific audio to process"
+            elif task == "notreal":
+                state = "Please try uploading a real audio"
+            elif task == "fileerror":
+                state = "Please an error is in the audio you tried uploading"
+            else:
+                state = "audio uploaded successfully"
+            success_audios.append(latest_audio.id)
+            if not task:
+                return jsonify({"status":"e","m
+        return jsonify({"message":"Audios uploaded successfully","audio_id":audio_id})
     except Exception as e:
         db.session.rollback()
         my_only.error(f"An error occurred during audio uploads:{e}")

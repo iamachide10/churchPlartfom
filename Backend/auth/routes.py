@@ -88,20 +88,20 @@ def login():
                 storing = SessionStorage(user_id=existence.id)
                 storing.set_hash(raw_token)
                 db.session.add(storing)
-                db.session.commit() 
-                return jsonify({"issue":"verification","message":"Email not verified. Please verify your account.","resend_verification_url":url_for("resend_verification",token=raw_token,_external=True)})
+                db.session.commit()
+                return jsonify({"issue":"verification","message":"Email not verified. Please veri1	fy your account.","resend_verification_url":url_for("resend_verification",token=raw_token,_external=True)})
             except Exception as e:
                 db.session.rollback()
                 my_log.error(f"Error: {e}")
                 return jsonify({"message":"Oops something went wrong when trying to login."})    
-    else:   
+    else:
         return jsonify({"message":"Please sign in first."})
     
 @auth_bp.route("/logout",methods=["POST"])
 def close():
     response = jsonify({"message":"User logged out successfully"})
     unset_jwt_cookies(response)
-    return response                          
+    return response
 
 
 
