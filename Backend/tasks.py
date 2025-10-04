@@ -5,7 +5,7 @@ from celery import shared_task
 from flask import current_app
 from mutagen import File
 
-logger = celery_logs()
+
 me_logger = normal_logs()
 
 from sendgrid import SendGridAPIClient
@@ -37,45 +37,30 @@ def send_emails(recipient, subject, text_body=None, html_body=None):
         return "success"
     except Exception as e:
         me_logger.error(f"Failed to send email to {recipient}: {e}")
-        return None
+        return None        
 
 
 def check_file_validity(audio_id):
-    check = MainAudio.query.filter_by(id=audio_id).first()
-    if not check:
-        raise Exception("Couldn't process specific audio")
-    verify = AudioStorage.query.filter_by(id=check.id).first()
-    if not verify:
-        return Exception("Couldn't process specific audio")
-    filepath = check.filepath
     try:
-        audio = File(filepath)
+        audio = File(audio_id)
     except Exception as e:
-        os.remove(filepath)
-        db.session.delete(check)
-        db.session.delete(verify)
-        db.session.commit()
-        logger.error(f"An error occurred during file validation:{e}")
-        return {"message":"Please try uploading a real audio"}
+        os.remove(audio_id)
+        me_logger.error(f"An error occurred during file validation:{e}")
+        return "not_file"
     if audio is None:
-        os.remove(filepath)
-        db.session.delete(check)
-        db.session.delete(verify)
-        db.session.commit()
-        raise Exception("Please upload a real audio")
-    os.makedirs(current_app.config.get("AUDIO_UPLOAD"),exist_ok=True)
-    export_path = os.path.join(current_app.config.get("AUDIO_UPLOAD"),check.filename)
+        os.remove(audio_id)
+        return "not_file"
     try:
-        audio_segment = AudioSegment.from_file(filepath)
-        audio_segment.export(export_path,format="mp3",bitrate="192k")
-        os.remove(filepath)
-        return {"message":f"Audio saved successfully"}
+        uploads = os.path.join("sharks","upload")
+        os.makedirs(uploads,exist_ok=True)
+        audio_segment = AudioSegment.from_file(audio_id)
+        audio_segment.export(uploads,format="mp3",bitrate="192k")
+        os.remove(audio_id)
+        return uploads
     except Exception as e:
-        os.remove(filepath)
-        db.session.delete(check)
-        db.session.delete(verify)
-        db.session.commit()
-        logger.error(f"Error, audio segment couldn't detect format:{e}")
-        return {"message":"Audio is corrupted"}
+        os.remove(audio_id)
+        me_logger.error(f"Error, audio segment couldn't detect format:{e}")
+        return "not_file"
+
 
 
