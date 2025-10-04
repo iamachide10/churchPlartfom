@@ -20,7 +20,7 @@ def send_emails(recipient, subject, text_body=None, html_body=None):
     try:
         from_email = Email(current_app.config["FROM_EMAIL"], current_app.config["FROM_NAME"])
         to_email = To(recipient)
-
+        print("email process still going on")
         # Create mail object (no content yet)
         mail = Mail(from_email=from_email, to_emails=to_email, subject=subject)
 
@@ -31,8 +31,9 @@ def send_emails(recipient, subject, text_body=None, html_body=None):
         # Add HTML version (for clickable link)
         if html_body:
             mail.add_content(Content("text/html", html_body))
-
+        print("email at the verge of finishing")
         sg = SendGridAPIClient(api_key)
+        print("Email almost done")
         response = sg.send(mail)
         return "success"
     except Exception as e:

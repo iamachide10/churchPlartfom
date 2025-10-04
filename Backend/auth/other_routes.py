@@ -33,6 +33,7 @@ def verification_resend():
     try:
         token = secrets.token_urlsafe(32)
         expiration = datetime.utcnow() + timedelta(minutes=15)
+        print("setting expiration token")
         reset_token = ResetToken(user_id=verify.id,token=token,expires_at=expiration)
         db.session.delete(check_existence)
         db.session.add(reset_token)
@@ -45,6 +46,7 @@ def verification_resend():
         <p>Please verify your account by clicking the link below:</p>
         <p><a href="{link}">Verify Account</a></p>
         """
+        print(f"Starting resend verification for {token}")
         status = send_emails(verify.email, subject, html_body, text_body )
         if status is None:
             return jsonify({"status":"e","message":"Error occurred when sending email, please request for another verification email link"})

@@ -42,12 +42,13 @@ class ResetToken(db.Model):
 class SessionStorage(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer,db.ForeignKey("user.id"),nullable=False)
-    token = db.Column(db.String(320),nullable=False)
+    token = db.Column(db.String(512),nullable=False)
     used = db.Column(db.Boolean,default=False)
     user = db.relationship("User",back_populates="session_storage")
 
     def set_hash(self,token):
-        self.token = generate_password_hash(token,method="pbkdf2:sha256",salt_length=16)
+        if not self.token or not self.check_hash(token):
+            self.token = generate_password_hash(token,method="pbkdf2:sha256",salt_length=16)
 
     def check_hash(self,input_token):
         return check_password_hash(self.token,input_token)
