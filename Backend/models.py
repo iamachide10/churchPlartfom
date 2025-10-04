@@ -50,9 +50,16 @@ class SessionStorage(db.Model):
         if not self.token or not self.check_hash(token):
             self.token = generate_password_hash(token,method="pbkdf2:sha256",salt_length=16)
 
-    def check_hash(self,input_token):
-        return check_password_hash(self.token,input_token)
-    
+    def check_hash(self, input_token):
+        # Avoid crashing when token is None or empty
+        if not self.token:
+            return False
+        try:
+            return check_password_hash(self.token, input_token)
+        except Exception:
+            return False
+
+
 class AudioStorage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     preacher = db.Column(db.String(30), nullable=False)
