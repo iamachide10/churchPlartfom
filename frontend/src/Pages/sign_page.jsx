@@ -11,16 +11,13 @@ const SignUp = () => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-
   if (password !== confirmPassword) {
     setError("Passwords do not match");
     return;
   }
-
   const credentials = { name, email, password };
   const API_URL = import.meta.env.VITE_API_URL;
   const url = `${API_URL}/auth/register`;
-
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -37,8 +34,6 @@ const handleSubmit = async (e) => {
     }
 
     const { status, message} = data;
-
-
     if (status === "e") {
       setError(typeof message === "string" ? message : JSON.stringify(message));
       setSuccess("")
@@ -49,9 +44,8 @@ const handleSubmit = async (e) => {
       setError("Unexpected response from server");
       setSuccess("")
     }
-
   } catch (err) {
-    console.error("❌ Request failed:", err);
+    console.error("❌ Request failed:"+ err);
     setError(err.message || "Something went wrong");
     setSuccess("")
   }
@@ -69,7 +63,6 @@ const handleSubmit = async (e) => {
           Sign Up
         </h2>
 
-        {/* Name */}
         <div className="mb-4">
           <label className="block text-gray-300 mb-1">Full Name</label>
           <input
@@ -81,8 +74,7 @@ const handleSubmit = async (e) => {
           />
         </div>
 
-        {/* Email */}
-        <div className="mb-4">
+       <div className="mb-4">
           <label className="block text-gray-300 mb-1">Email</label>
           <input
             type="email"
@@ -93,7 +85,6 @@ const handleSubmit = async (e) => {
           />
         </div>
 
-        {/* Password */}
         <div className="mb-4">
           <label className="block text-gray-300 mb-1">Password</label>
           <input
@@ -104,7 +95,7 @@ const handleSubmit = async (e) => {
             className="w-full p-2 rounded bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
         </div>
-        {/* Confirm Password */}
+
         <div className="mb-4">
           <label className="block text-gray-300 mb-1">Confirm Password</label>
           <input
@@ -116,11 +107,9 @@ const handleSubmit = async (e) => {
           />
         </div>
 
-        {/* Success & Error Messages */}
         {success && <p className="text-green-400 text-sm mb-4">{success}</p>} 
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
       
-        {/* Button */}
         <button
           type="submit"
           className="w-full bg-yellow-400 text-black py-2 rounded font-bold hover:bg-yellow-500 transition"

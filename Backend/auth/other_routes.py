@@ -10,54 +10,56 @@ from datetime import datetime,timedelta
 mine_log = normal_logs()
 
 
-@auth_bp.route("/resend-verification",methods=["POST"])
+@auth_bp.route("/resend-verification", methods=["POST"])
 def verification_resend():
     get_token = request.args.get("token")
     if not get_token:
-        return jsonify({"message":"Couldn't retrieve token"})
-    check_existence = None
-    verify = SessionStorage.query.all()
-    for each in verify:
-        if each.check_hash(get_token):
-            check_existence = each 
-            break
-    if check_existence is None:
+        return jsonify({"message": "Couldn't retrieve token"})
+    # ✅ Find the token quickly by prefix
+    record = SessionStorage.query.filter_by(token_prefix=get_token[:12]).first()
+    if not record or not record.check_hash(get_token):
         mine_log.warning("Warning, user token was unidentified in the database")
-        return jsonify({"message":"Couldn't identify user."})
+        return jsonify({"message": "Couldn't identify user."})
 
-    verify = User.query.filter_by(id=check_existence.user_id).first()
-    if not verify:
-        return jsonify({"message":"Couldn't identify user."})
-    if verify.is_verified:
-        return jsonify({"message":"Please this account is already verified"})
+    user = User.query.get(record.user_id)
+    if not user:
+        return jsonify({"message": "Couldn't identify user."})
+    if user.is_verified:
+        return jsonify({"message": "Please this account is already verified"})
+
     try:
         token = secrets.token_urlsafe(32)
         expiration = datetime.utcnow() + timedelta(minutes=15)
-        print("setting expiration token")
-        reset_token = ResetToken(user_id=verify.id,token=token,expires_at=expiration)
-        db.session.delete(check_existence)
+        reset_token = ResetToken(user_id=user.id, token=token, expires_at=expiration)
+
+        db.session.delete(record)
         db.session.add(reset_token)
         db.session.commit()
-        subject = "Please verify your account."
+
         link = url_for("auth.verify_email", token=token, _external=True)
-     
-        text_body = f"Please verify your account by clicking this link: {link}"
+        subject = "Please verify your account."
         html_body = f"""
         <p>Please verify your account by clicking the link below:</p>
         <p><a href="{link}">Verify Account</a></p>
         """
-        print(f"Starting resend verification for {token}")
-        status = send_emails(verify.email, subject, html_body, text_body )
-        if status is None:
-            return jsonify({"status":"e","message":"Error occurred when sending email, please request for another verification email link"})
-        elif status == "600":
-            return jsonify({"status":"e","message":"Oops email never get sent, please tryagain another time."})
-        else:
-            return jsonify({"status":"s","message":"Verification email sent successfully,please check your inbox"})
+        text_body = f"Please verify your account by clicking this link: {link}"
+
+        status = send_emails(user.email, subject, html_body, text_body)
+        if not status or status == "600":
+            return jsonify({
+                "status": "e",
+                "message": "Error occurred when sending email, please try again later."
+            })
+
+        return jsonify({
+            "status": "s",
+            "message": "Verification email sent successfully, please check your inbox."
+        })
+
     except Exception as e:
         db.session.rollback()
         mine_log.error(f"Error: {e}")
-        return jsonify({"message":"Something went wrong whiles trying to resend verification email."})
+        return jsonify({"message": "Something went wrong while resending verification email."})
 
 
 @auth_bp.route("/verification-email",methods=["GET"])

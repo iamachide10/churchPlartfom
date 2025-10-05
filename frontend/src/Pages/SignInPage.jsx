@@ -7,10 +7,10 @@ const SignIn = () => {
   const [error, setError] = useState("");
   const { login } = useAuth();
   const [resendMessage,setResendMessage]=useState("")
-  
   const [verification, setVerification]=useState(null)
 
 
+  
   const handleResend = async () => {
     try {
       const res = await fetch(verification, {
@@ -28,6 +28,7 @@ const SignIn = () => {
       console.error("Error :" + err)
     }
   };
+
 
 
 
@@ -75,7 +76,6 @@ const SignIn = () => {
           Sign In
         </h2>
 
-        {/* Email */}
         <div className="mb-4">
           <label className="block text-gray-300 mb-1">Email</label>
           <input
@@ -87,7 +87,7 @@ const SignIn = () => {
           />
         </div>
 
-        {/* Password */}
+
         <div className="mb-4">
           <label className="block text-gray-300 mb-1">Password</label>
           <input
@@ -99,9 +99,10 @@ const SignIn = () => {
           />
         </div>
 
-        {/* Error */}
+      
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
         
+
         {verification && (
        <button onClick={handleResend} className="mb-4 text-blue-400 underline">
           Resend Verification Email
@@ -109,7 +110,6 @@ const SignIn = () => {
         )}
          {resendMessage && <p className="text-white-400 text-sm mb-4">{resendMessage}</p>}
 
-        {/* Button */}
         <button
           type="submit"
           className="w-full bg-yellow-400 text-black py-2 rounded font-bold hover:bg-yellow-500 transition"

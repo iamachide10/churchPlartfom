@@ -17,13 +17,12 @@ my_only = normal_logs()
 
 load_dotenv()
 
-
 s3 = boto3.client("s3",
         aws_access_key_id=os.getenv("SUPABASE_ACCESS_KEY_ID"),
         aws_secret_access_key=os.getenv("SUPABASE_SECRET_ACCESS_KEY"),                                              
         region_name=os.getenv("REGION_NAME"),                                           
         endpoint_url=os.getenv("ENDPOINT_URL")
-    )
+        )
 
 bucket_name = os.getenv("SUPABASE_S3_BUCKET")
 endpoint = os.getenv("ENDPOINT_URL")
@@ -66,7 +65,6 @@ def audio_handling():
             audio_storage = AudioStorage(preacher=preacher,title=title,timestamp=timestamp,filepath=file_url,original_filename=filename,storage_name=unique_name)
             db.session.add(audio_storage)
             success_audios.append(filename)
-
         else:
             failed_audios.append(filename)
     try:
@@ -77,7 +75,7 @@ def audio_handling():
         my_only.error(f"An error occurred {e}")
         return jsonify({"status":"e","message":"Please an error occurred."})
     
-        
+
 def generate_presigned_url(filename):
     bucket_name = bucket
     try:
@@ -85,6 +83,7 @@ def generate_presigned_url(filename):
     except Exception as e:
         my_only({f"An error showed up:{e}"})
         return None 
+
 
 @uploads_bp.route("/serve-audios/<filename>",methods=["GET"])
 @jwt_required()
@@ -102,4 +101,4 @@ def bring_audios():
         
             
         
-    
+
