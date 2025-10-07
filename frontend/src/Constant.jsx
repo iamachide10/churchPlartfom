@@ -6,6 +6,6 @@ export const logOutNavLinks=[
 
 export const logInNavLinks=[
     {name:"Sermons" , href:"/sermons"},
-    {name:"About us" , href:"/about_us"},    
-    
+    {name:"About us" , href:"/about_us"}, 
+    {name:"Upload Sermon" , href:"/upload"},   
 ]

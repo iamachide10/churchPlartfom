@@ -7,6 +7,8 @@ import {Routes, Route , Link} from "react-router-dom"
 import SignIn from "./SignInPage";
 import SignUp from "./sign_page";
 import AboutUs from "./AboutUsPage";
+import SermonPackDetails from "./SermonPackDetail";
+import UploadSermon from "./UploadSermon";
 
 
 
@@ -16,6 +18,8 @@ export const Main =()=>{
         <NavBar/>
         <Routes>
             <Route path="/" element={<LandingPage/>}/>
+            <Route path="/upload" element={<UploadSermon />} />
+            <Route path="/sermons/:id" element={<SermonPackDetails />} />
             <Route path="/sign_in" element={<SignIn/>}/>
             <Route path="/sermons" element={<SermonListPage/>}/>
             <Route path="/sign_up" element={<SignUp/>}/>

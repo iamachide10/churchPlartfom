@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import Spinner from "../Components/spinser";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -8,9 +9,11 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [loding, setLoding] = useState(false);
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+  setLoding(true);
   if (password !== confirmPassword) {
     setError("Passwords do not match");
     return;
@@ -26,6 +29,7 @@ const handleSubmit = async (e) => {
       body: JSON.stringify(credentials),
     });
     const text = await response.text();
+
     let data;
     try {
       data = JSON.parse(text);
@@ -48,6 +52,9 @@ const handleSubmit = async (e) => {
     console.error("❌ Request failed:"+ err);
     setError(err.message || "Something went wrong");
     setSuccess("")
+  }
+  finally {
+    setLoding(false);
   }
 };
 

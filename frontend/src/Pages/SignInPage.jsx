@@ -8,10 +8,12 @@ const SignIn = () => {
   const { login } = useAuth();
   const [resendMessage,setResendMessage]=useState("")
   const [verification, setVerification]=useState(null)
+  const [loading,setLoading]=useState(false)
 
 
   
   const handleResend = async () => {
+    setLoading(true)
     try {
       const res = await fetch(verification, {
         method: "POST",
@@ -26,6 +28,8 @@ const SignIn = () => {
       setResendMessage("Something went wrong. Please try again later.");
       setError("")
       console.error("Error :" + err)
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -34,6 +38,7 @@ const SignIn = () => {
 
   const handleSubmit = async(e) => {
     e.preventDefault();
+    setLoading(true)
     const credentials = { email, password };
     const API_URL = import.meta.env.VITE_API_URL;
     const url = `${API_URL}/auth/login`;
@@ -50,7 +55,10 @@ const SignIn = () => {
       
     }catch{
       throw new Error(`Invalid JSON response: ${text}`)
+    }finally{
+      setLoading(false)
     }
+
     const {status,message ,resend_verification_url}=data
     if(resend_verification_url){
       setVerification(resend_verification_url)
