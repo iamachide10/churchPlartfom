@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import Spinner from "../Components/spinser";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -72,6 +73,10 @@ const SignIn = () => {
       window.location.href="/"
     } 
   };
+
+  if(loading){
+    return <Spinner/>
+  }
 
 
   return (
