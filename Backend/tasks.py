@@ -36,6 +36,7 @@ def send_emails(recipient, subject, body):
         print(f"📨 Email sent, status code: {response.status_code}")
         return response.status_code
     except Exception as e:
+        me_logger.error(f"Failed to send email to {recipient}: {e}")
         print(f"❌ Error sending email: {e}")
         return None
 
