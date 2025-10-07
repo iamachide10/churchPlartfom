@@ -35,16 +35,11 @@ def verification_resend():
         db.session.delete(record)
         db.session.add(reset_token)
         db.session.commit()
-
-        link = url_for("auth.verify_email", token=token, _external=True)
-        subject = "Please verify your account."
-        html_body = f"""
-        <p>Please verify your account by clicking the link below:</p>
-        <p><a href="{link}">Verify Account</a></p>
-        """
-        text_body = f"Please verify your account by clicking this link: {link}"
-
-        status = send_emails(user.email, subject, html_body, text_body)
+        link = url_for("auth.verify_email",token=token,_external=True)
+        subject= "Please verify your email"
+        body = f"Please click on this link to verify your email.\n\t{link}"        
+        print(body)
+        status = send_emails(new_user.email,subject,body)
         if not status or status == "600":
             return jsonify({
                 "status": "e",
