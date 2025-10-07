@@ -39,7 +39,7 @@ def verification_resend():
         subject= "Please verify your email"
         body = f"Please click on this link to verify your email.\n\t{link}"        
         print(body)
-        status = send_emails(new_user.email,subject,body)
+        status = send_emails(user.email,subject,body)
         if not status or status == "600":
             return jsonify({
                 "status": "e",
