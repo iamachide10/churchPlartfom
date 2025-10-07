@@ -4,6 +4,7 @@ import { logOutNavLinks } from "../Constant";
 import myImage from "../assets/logo.jpg";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import Spinner from "./spinser";
 
 
 
@@ -11,6 +12,7 @@ export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const {user,logout}=useAuth();  
+  const [loading,setLoading]=useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -22,6 +24,7 @@ export default function NavBar() {
 
   
   const logOut= async()=>{
+      setLoading(true)
       const API_URL = import.meta.env.VITE_API_URL;
       const url = `${API_URL}/auth/logout`;
       const options={
@@ -42,6 +45,13 @@ export default function NavBar() {
       }catch(e){
         setMess(e)
       }
+      finally{
+        setLoading(false)
+      }
+
+  }
+    if(loading){
+    return <Spinner/>
   }
 
   return (
