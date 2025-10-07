@@ -13,6 +13,8 @@ from flask_jwt_extended import create_access_token,create_refresh_token,set_acce
 
 my_log = normal_logs()
 
+
+
 @auth_bp.route("/register", methods=["POST"])
 def sign_up():
     print(">>> Incoming request:", request.method)  
@@ -40,15 +42,12 @@ def sign_up():
         reset_token = ResetToken(user_id=new_user.id,token=token,expires_at=expiration_time)
         db.session.add(reset_token)
         db.session.commit() 
-        subject = "Please verify your email"
         link = url_for("auth.verify_email",token=token,_external=True)
-        
-        text_body = f"Please verify your account by clicking this link: {link}"
-        html_body = f"""
-        <p>Please verify your account by clicking the link below:</p>
-        <p><a href="{link}">Verify Account</a></p>
-        """
-        status = send_emails(new_user.email, subject, html_body, text_body )
+        subject= "Please verify your email"
+        body = f"Please click on this link to verify your email.\n\t{link}"        
+        print(body)
+
+        status = send_emails(new_user.email,subject,body)
         if status is None:
             return jsonify({"status":"error","message":"Error occurred when sending email, please request for another verification email"})
         elif status == "600":
