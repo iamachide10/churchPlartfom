@@ -1,39 +1,69 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const { login } = useAuth();
+  const [resendMessage,setResendMessage]=useState("")
+  
+  const [verification, setVerification]=useState(null)
 
-  // Dummy credentials
-  const validUser = {
-    email: "test@example.com",
-    password: "123456",
-  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const user=localStorage.getItem("users")
-    if (email === validUser.email && password === validUser.password) {
-      setIsSignedIn(true);
-      setError("");
-    } else {
-      setError("❌ Invalid email or password");
-      setIsSignedIn(false);
+  const handleResend = async () => {
+    try {
+      const res = await fetch(verification, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await res.json();
+      setResendMessage(data.message);
+      setError("")
+      
+    } catch (err) {
+      setResendMessage("Something went wrong. Please try again later.");
+      setError("")
+      console.error("Error :" + err)
     }
   };
 
-  if (isSignedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        <h1 className="text-2xl font-bold text-green-400">
-          ✅ Signed in successfully! Welcome back 
-        </h1>
-      </div>
-    );
-  }
+
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+    const credentials = { email, password };
+    const API_URL = import.meta.env.VITE_API_URL;
+    const url = `${API_URL}/auth/login`;
+    const response=await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(credentials),
+    })
+    const text= await response.text()
+    let data;
+    try{
+      data=JSON.parse(text)
+      
+    }catch{
+      throw new Error(`Invalid JSON response: ${text}`)
+    }
+    const {status,message ,resend_verification_url}=data
+    if(resend_verification_url){
+      setVerification(resend_verification_url)
+    }
+    if(status==="e"){
+      setError(typeof message==="string" ? message :JSON.stringify(message))
+    }
+    else if(status==="s"){
+      setError("")
+      login(data.user.userName)
+      window.location.href="/"
+    } 
+  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -71,6 +101,13 @@ const SignIn = () => {
 
         {/* Error */}
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+        
+        {verification && (
+       <button onClick={handleResend} className="mb-4 text-blue-400 underline">
+          Resend Verification Email
+       </button>
+        )}
+         {resendMessage && <p className="text-white-400 text-sm mb-4">{resendMessage}</p>}
 
         {/* Button */}
         <button

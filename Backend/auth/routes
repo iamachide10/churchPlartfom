@@ -10,7 +10,7 @@ from app_logging import normal_logs
 from tasks import send_emails
 from flask_jwt_extended import create_access_token,create_refresh_token,set_access_cookies,set_refresh_cookies,unset_jwt_cookies,decode_token
 
-#hjj
+
 my_log = normal_logs()
 
 @auth_bp.route("/register", methods=["POST"])

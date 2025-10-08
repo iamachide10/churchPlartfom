@@ -15,10 +15,7 @@ from supabase import create_client
 
 my_only = normal_logs()
 
-<<<<<<< HEAD
-def get_s3_client():
-    return boto3.client("s3",
-=======
+
 load_dotenv()
 
 

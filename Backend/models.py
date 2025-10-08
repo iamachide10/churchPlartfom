@@ -41,7 +41,7 @@ class ResetToken(db.Model):
 
 class SessionStorage(db.Model):
     id = db.Column(db.Integer,primary_key=True)
-    User_id = db.Column(db.Integer,db.ForeignKey("user.id"),nullable=False)
+    user_id = db.Column(db.Integer,db.ForeignKey("user.id"),nullable=False)
     token = db.Column(db.String(320),nullable=False)
     used = db.Column(db.Boolean,default=False)
     user = db.relationship("User",back_populates="session_storage")
@@ -54,25 +54,9 @@ class SessionStorage(db.Model):
     
 class AudioStorage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    audio_id = db.Column(db.Integer, db.ForeignKey("main_audio.id"), nullable=False)
     preacher = db.Column(db.String(30), nullable=False)
     title = db.Column(db.String(400), nullable=False)
     time_stamp = db.Column(db.String(15), nullable=False)
-    is_valid = db.Column(db.Boolean, default=None, nullable=True)
-
-    # ❌ remove cascade here (child side doesn't control orphans)
-    main_audio = db.relationship("MainAudio", back_populates="audio_storage", lazy="joined")
-
-
-class MainAudio(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(320), nullable=False)
-    filepath = db.Column(db.String(80), nullable=False)
-
-    # ✅ keep cascade here (parent controls child lifecycles)
-    audio_storage = db.relationship(
-        "AudioStorage",
-        back_populates="main_audio",
-        cascade="all, delete-orphan",
-        single_parent=True   # ensures each AudioStorage belongs to only one MainAudio
-    )
+    original_filename = db.Column(db.String(50),nullable=False)
+    filepath = db.Column(db.String(50),nullable=False)
+    storage_name = db.Column(db.String(120),nullable=False)

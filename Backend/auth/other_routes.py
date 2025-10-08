@@ -2,6 +2,7 @@ from . import auth_bp
 from app_logging import normal_logs
 from flask import jsonify,request
 import secrets
+from flask import url_for
 from tasks import send_emails
 from models import User,ResetToken,SessionStorage,db
 from datetime import datetime,timedelta
@@ -37,19 +38,25 @@ def verification_resend():
         db.session.add(reset_token)
         db.session.commit()
         subject = "Please verify your account."
-        link = url_for("verify_email",token=token,_external=True)
-        body = f"Please verify your account by clicking on this link below.\n\n\t{link}"
-        status = send_emails.(verify.email,subject,body)
+        link = url_for("auth.verify_email", token=token, _external=True)
+     
+        text_body = f"Please verify your account by clicking this link: {link}"
+        html_body = f"""
+        <p>Please verify your account by clicking the link below:</p>
+        <p><a href="{link}">Verify Account</a></p>
+        """
+        status = send_emails(verify.email, subject, html_body, text_body )
         if status is None:
-            return jsonify({"status":"error","message":"Error occurred when sending email, please request for another verification email link"})
+            return jsonify({"status":"e","message":"Error occurred when sending email, please request for another verification email link"})
         elif status == "600":
-            return jsonify({"status":"error","message":"Oops email never get sent, please tryagain another time."})
+            return jsonify({"status":"e","message":"Oops email never get sent, please tryagain another time."})
         else:
             return jsonify({"status":"s","message":"Verification email sent successfully,please check your inbox"})
     except Exception as e:
         db.session.rollback()
         mine_log.error(f"Error: {e}")
         return jsonify({"message":"Something went wrong whiles trying to resend verification email."})
+
 
 @auth_bp.route("/verification-email",methods=["GET"])
 def verify_email():
@@ -70,12 +77,14 @@ def verify_email():
     try:
         check_match.is_verified = True
         db.session.delete(verify)
-        db.seesion.commit()
+        db.session.commit()
         return jsonify({"status":"success","message":"User account was successfully verified"})
     except Exception as e:
         db.session.rollback()
         mine_log.error(f"Error occurred with {verify.user_id}: {e}")
         return jsonify({"status":"failed","message":"Oops an error occurred during verification."})
+    
+
     
 @auth_bp.route("/reset-password-request",methods=["POST"])
 def reset_password():
@@ -97,7 +106,7 @@ def reset_password():
         subject = "Reset Your Password"
         link = url_for("password_reset",token=token,_external=True)
         body = f"Click on this link to reset your password.\n\n{link}"
-        status = send_emails.(check_validity.email,subject,body)
+        status = send_emails(check_validity.email,subject,body)
         if status is None:
             return jsonify({"status":"error","message":"Error occurred when sending reset password link, please request for another link."})
         elif status == "600":

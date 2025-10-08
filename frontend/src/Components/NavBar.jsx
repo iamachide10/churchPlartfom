@@ -6,11 +6,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
 
+
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const {user,logout}=useAuth();  
 
-  const {user}=useAuth(); 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
@@ -19,6 +20,29 @@ export default function NavBar() {
 
   const NavList = user? logInNavLinks :logOutNavLinks;
 
+  
+  const logOut= async()=>{
+      const API_URL = import.meta.env.VITE_API_URL;
+      const url = `${API_URL}/auth/logout`;
+      const options={
+        method:"POST",
+        Credentials :"include",
+        headers:{
+          "Content-Type":"application/json",
+        }
+      }
+      try{
+        const response=await fetch(url,options)
+        const data= await response.json()
+        const m=data.message
+        if(data.message="User logged out successfully"){
+          logout()
+          window.location.href="/"
+        }
+      }catch(e){
+        setMess(e)
+      }
+  }
 
   return (
     <header
@@ -42,7 +66,7 @@ export default function NavBar() {
             <div className="hidden md:flex items-center gap-6">
               {NavList.map((nav) => (
                 <NavLink
-                  key={nav.id}
+                  key={nav.name}
                   to={nav.href}
                   className={({ isActive }) =>
                     `block px-4 py-2 rounded-md ${
@@ -55,7 +79,9 @@ export default function NavBar() {
                   {nav.name}
                 </NavLink>
               ))}
+              {user && <button  onClick={logOut} className="block px-4 py-2 rounded-md bg-yellow-400 text-black font-semibold">Log Out</button>}
             </div>
+
 
             {/* Mobile button */}
             <button
@@ -102,7 +128,7 @@ export default function NavBar() {
               <div
                 id="mobile-menu"
                 role="menu"
-                className="absolute sm:w-full right-0 top-full mt-2 w-48 rounded-md bg-black/90 backdrop-blur-sm border border-gray-800 shadow-lg md:hidden"
+                className="absolute  right-0 top-full mt-2 w-48 rounded-md bg-black/90 backdrop-blur-sm border border-gray-800 shadow-lg md:hidden"
               >
                 {NavList.map((nav) => (
                   <NavLink
@@ -120,6 +146,7 @@ export default function NavBar() {
                     {nav.name}
                   </NavLink>
                 ))}
+                {user && <button  onClick={logOut} className="w-full block px-4 py-2 rounded-md bg-yellow-400 text-black font-semibold">Log Out</button>}
               </div>
             )}
           </div>
