@@ -12,7 +12,8 @@ from celery.result import AsyncResult
 from flask_migrate import Migrate
 
 app = Flask(__name__)
-CORS(app,resources={r"/auth/*": {"origins": "https://min-elistarminstry.onrender.com"}},supports_credentials=True)
+CORS(app, supports_credentials=True, origins=["https://min-elistarminstry.onrender.com"])
+
 app.config.from_object(Config)
 
 migrate = Migrate(app, db)
