@@ -69,6 +69,8 @@ const SignIn = () => {
     }
     else if(status==="s"){
       setError("")
+      console.log(data);
+      console.log(data.access_token);
       login(data.user.userName , data.access_token)
       window.location.href="/"
     } 
