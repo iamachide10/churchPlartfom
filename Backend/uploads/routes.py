@@ -105,7 +105,7 @@ def generate_presigned_url(filename):
 
 
 @uploads_bp.route("/get-sermons", methods=["GET"])
-@jwt_required()
+@jwt_required(locations=["headers"])
 def get_sermons():
     user_id = int(get_jwt_identity())
     print(user_id)  
