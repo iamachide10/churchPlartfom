@@ -87,7 +87,7 @@ def audio_handling():
 
     try:
         db.session.commit()
-        return jsonify({"success": success_audios, "failed": failed_audios})
+        return jsonify({"success": success_audios, "failed": failed_audios , "message":"audios uploaded"})
     except Exception as e:
         db.session.rollback()
         my_only.error(f"An error occurred {e}")
@@ -103,20 +103,68 @@ def generate_presigned_url(filename):
         return None 
 
 
-@uploads_bp.route("/serve-audios/<filename>",methods=["GET"])
+
+@uploads_bp.route("/get-sermons", methods=["GET"])
 @jwt_required()
-def bring_audios(filename):
-    get_id = get_jwt_identity()
-    verify = User.query.filter_by(id=get_id).first()
-    if not verify:
-        return jsonify({"status":"e","message":"User not  found, please sign up."})
-    url = generate_presigned_url(filename)
-    if not url:
-        return jsonify({"status":"e","message":"File not found or cannot generate URL"})
-    return jsonify({"download_url":url})
-    
+def get_sermons():
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return jsonify({"status": "e", "message": "User not found"}), 404
+    # Group audios by sermon_id (each sermon may have multiple audios)
+    sermons = (
+        db.session.query(
+            AudioStorage.sermon_id,
+            AudioStorage.preacher,
+            AudioStorage.title,
+            AudioStorage.timestamp
+        )
+        .distinct(AudioStorage.sermon_id)
+        .all()
+    )
+
+    sermon_list = [
+        {
+            "id": sermon.sermon_id,
+            "pastorName": sermon.preacher,
+            "sermonTitle": sermon.title,
+            "sermonDate": sermon.timestamp
+        }
+        for sermon in sermons
+    ]
+
+    return jsonify({"status": "success", "sermons": sermon_list})
 
         
             
-        
 
+
+@uploads_bp.route("/get-sermon-audios/<int:sermon_id>", methods=["GET"])
+@jwt_required()
+def get_sermon_audios(sermon_id):
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return jsonify({"status": "e", "message": "User not found"}), 404
+
+    sermon_audios = AudioStorage.query.filter_by(sermon_id=sermon_id).all()
+    if not sermon_audios:
+        return jsonify({"status": "e", "message": "No audios found"}), 404
+
+    sermon_data = {
+        "id": sermon_id,
+        "preacher": sermon_audios[0].preacher,
+        "title": sermon_audios[0].title,
+        "timestamp": sermon_audios[0].timestamp,
+        "audios": []
+    }
+
+    for audio in sermon_audios:
+        url = generate_presigned_url(audio.storage_name)
+        sermon_data["audios"].append({
+            "id": audio.id,
+            "name": audio.original_filename,
+            "url": url
+        })
+
+    return jsonify({"status": "success", "sermon": sermon_data})

@@ -4,17 +4,43 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../Components/spinser";
 
+
 export const SermonListPage = () => {
-  const [sermons, setSermons] = useState([]);
+ const [sermons, setSermons] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const {user,logout}=useAuth();  
-  // const {user}=useAuth()
-  
+  const { user } = useAuth();
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("sermons") || "[]");
-    setSermons(stored);
-  }, []);
+    const fetchSermons = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+        const url = `${API_URL}/uploads/get-audios`;
+        const response = await fetch(url, {
+          headers: {
+            "Authorization": `Bearer ${user?.access_token}`, // if protected route
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch sermons");
+        }
+
+        const data = await response.json();
+        setSermons(data.sermons || []);
+      } catch (error) {
+        console.error("Error fetching sermons:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSermons();
+  }, [user]);
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   if(!user) {
   return (
