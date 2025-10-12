@@ -114,23 +114,30 @@ def get_sermons():
     # if not user:
     #     return jsonify({"status": "e", "message": "User not found"}), 404
     # Group audios by sermon_id (each sermon may have multiple audios)
+    #   id = db.Column(db.Integer, primary_key=True)
+    # preacher = db.Column(db.String(30), nullable=False)
+    # title = db.Column(db.String(400), nullable=False)
+    # time_stamp = db.Column(db.String(15), nullable=False)
+    # original_filename = db.Column(db.String(50),nullable=False)
+    # filepath = db.Column(db.String(50),nullable=False)
+    # storage_name = db.Column(db.String(120),nullable=False)
     sermons = (
         db.session.query(
-            AudioStorage.sermon_id,
+            AudioStorage.id,
             AudioStorage.preacher,
             AudioStorage.title,
-            AudioStorage.timestamp
+            AudioStorage. time_stamp
         )
-        .distinct(AudioStorage.sermon_id)
+        .distinct(AudioStorage.id)
         .all()
     )
 
     sermon_list = [
         {
-            "id": sermon.sermon_id,
+            "id": sermon.id,
             "pastorName": sermon.preacher,
             "sermonTitle": sermon.title,
-            "sermonDate": sermon.timestamp
+            "sermonDate": sermon.time_stamp
         }
         for sermon in sermons
     ]
