@@ -13,12 +13,13 @@ export const SermonListPage = () => {
 
   useEffect(() => {
     const fetchSermons = async () => {
+      console.log(user.access_token);
       try {
         const API_URL = import.meta.env.VITE_API_URL;
         const url = `${API_URL}/uploads/get-sermons`;
         const response = await fetch(url, {
           headers: {
-            "Authorization": `Bearer ${user?.access_token}`, // if protected route
+            "Authorization": `Bearer ${user?.access_token}`,
           },
         });
 
@@ -34,7 +35,6 @@ export const SermonListPage = () => {
         setLoading(false);
       }
     };
-
     fetchSermons();
   }, [user]);
 

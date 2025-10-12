@@ -142,7 +142,7 @@ def get_sermons():
 @uploads_bp.route("/get-sermon-audios/<int:sermon_id>", methods=["GET"])
 @jwt_required()
 def get_sermon_audios(sermon_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.filter_by(id=user_id).first()
     if not user:
         return jsonify({"status": "e", "message": "User not found"}), 404
