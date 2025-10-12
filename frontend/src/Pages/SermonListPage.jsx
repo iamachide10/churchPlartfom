@@ -31,6 +31,7 @@ export const SermonListPage = () => {
 
         const data = await response.json();
         setSermons(data.sermons || []);
+        console.log(data.sermons);
       } catch (error) {
         console.error("Error fetching sermons:", error);
       } finally {
