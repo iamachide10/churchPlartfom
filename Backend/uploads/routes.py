@@ -108,6 +108,7 @@ def generate_presigned_url(filename):
 @jwt_required()
 def get_sermons():
     user_id = int(get_jwt_identity())
+    print(user_id)  
     user = User.query.filter_by(id=user_id).first()
     if not user:
         return jsonify({"status": "e", "message": "User not found"}), 404
