@@ -17,11 +17,13 @@ export const SermonListPage = () => {
       try {
         const API_URL = import.meta.env.VITE_API_URL;
         const url = `${API_URL}/uploads/get-sermons`;
-        const response = await fetch(url, {
-          headers: {
-            "Authorization": `Bearer ${access_token}`,
-          },
-        });
+        // const response = await fetch(url, {
+        //   headers: {
+        //     "Authorization": `Bearer ${access_token}`,
+        //   },
+        // });
+        const response = await fetch(url);
+        
 
         if (!response.ok) {
           throw new Error("Failed to fetch sermons");

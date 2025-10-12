@@ -105,13 +105,14 @@ def generate_presigned_url(filename):
 
 
 @uploads_bp.route("/get-sermons", methods=["GET"])
-@jwt_required(locations=["headers"])
+#@jwt_required(locations=["headers"])
 def get_sermons():
-    user_id = int(get_jwt_identity())
-    print(user_id)  
-    user = User.query.filter_by(id=user_id).first()
-    if not user:
-        return jsonify({"status": "e", "message": "User not found"}), 404
+    print(">>> Inside get_sermons endpoint")
+   # user_id = int(get_jwt_identity())
+    #print(user_id)  
+    # user = User.query.filter_by(id=user_id).first()
+    # if not user:
+    #     return jsonify({"status": "e", "message": "User not found"}), 404
     # Group audios by sermon_id (each sermon may have multiple audios)
     sermons = (
         db.session.query(
