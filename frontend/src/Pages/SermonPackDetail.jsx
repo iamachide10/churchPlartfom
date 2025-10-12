@@ -19,7 +19,7 @@ function SermonPackDetails() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-10 px-6">
+    <div className="min-h-screen bg-gray-900 text-white py-10 px-6 mt-6">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-yellow-400 mb-4">
           {sermon.sermonTitle}

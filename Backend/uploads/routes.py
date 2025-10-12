@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from urllib.parse import urljoin
 from flask_jwt_extended import jwt_required,get_jwt_identity
 from supabase import create_client
+from models import User
 
 my_only = normal_logs()
 
@@ -32,49 +33,66 @@ supabase_key = os.getenv("SUPABASE_KEY")
 
 supabase = create_client(supabase_url,supabase_key)
 
-@uploads_bp.route("/upload-audio",methods=["POST"])
+
+bucket = os.getenv("SUPABASE_S3_BUCKET")
+
+@uploads_bp.route("/upload-audio", methods=["POST"])
 def audio_handling():
+    # Get multiple audios
     audios = request.files.getlist("audios")
-    preachers = request.form.getlist("preacher")
-    titles = request.form.getlist("title")
-    timestamps = request.form.getlist("date")
 
-    if not all([audios,preachers,titles,timestamps]):
-        return jsonify({"status":"error","message":"Missing required fields"})
+    # These are single values
+    preacher = request.form.get("preacher")
+    title = request.form.get("title")
+    timestamp = request.form.get("date")
 
-    if not (len(audios) == len(preachers) == len(titles) == len(timestamps)):
-        return jsonify({"message":"Mismatched number of audios and details"})
+    if not all([audios, preacher, title, timestamp]):
+        return jsonify({"status": "error", "message": "Missing required fields"})
 
-    os.makedirs(current_app.config.get("TEMP_UPLOAD"),exist_ok=True)
+    os.makedirs(current_app.config.get("TEMP_UPLOAD"), exist_ok=True)
     upload_folder = current_app.config.get("TEMP_UPLOAD")
 
     success_audios = []
     failed_audios = []
-    for audio,preacher,title,timestamp in zip(audios,preachers,titles,timestamps):
+
+    for audio in audios:
         filename = secure_filename(audio.filename)
         unique_name = f"{uuid.uuid4().hex}.mp3"
-        file_url =  f"audios/{uuid.uuid4().hex}.mp3"      
-        file_path = os.path.join(upload_folder,unique_name)
+        file_url = f"audios/{unique_name}"
+        file_path = os.path.join(upload_folder, unique_name)
         audio.save(file_path)
-        
+
         status = check_file_validity(file_path)
         if status != "not_file":
-            with open(status,"rb") as f:
-                s3.upload_fileobj(f,bucket_name,unique_name,ExtraArgs={"ACL":"private","ContentType":status.mimetype})
-                
-            audio_storage = AudioStorage(preacher=preacher,title=title,timestamp=timestamp,filepath=file_url,original_filename=filename,storage_name=unique_name)
+            with open(status, "rb") as f:
+                s3.upload_fileobj(
+                    f,
+                    bucket_name,
+                    unique_name,
+                    ExtraArgs={"ACL": "private", "ContentType": status.mimetype},
+                )
+
+            audio_storage = AudioStorage(
+                preacher=preacher,
+                title=title,
+                timestamp=timestamp,
+                filepath=file_url,
+                original_filename=filename,
+                storage_name=unique_name,
+            )
             db.session.add(audio_storage)
             success_audios.append(filename)
         else:
             failed_audios.append(filename)
+
     try:
         db.session.commit()
-        return jsonify({"success":success_audios,"failed":failed_audios})
+        return jsonify({"success": success_audios, "failed": failed_audios})
     except Exception as e:
         db.session.rollback()
         my_only.error(f"An error occurred {e}")
-        return jsonify({"status":"e","message":"Please an error occurred."})
-    
+        return jsonify({"status": "error", "message": "Please an error occurred."})
+
 
 def generate_presigned_url(filename):
     bucket_name = bucket
@@ -87,7 +105,7 @@ def generate_presigned_url(filename):
 
 @uploads_bp.route("/serve-audios/<filename>",methods=["GET"])
 @jwt_required()
-def bring_audios():
+def bring_audios(filename):
     get_id = get_jwt_identity()
     verify = User.query.filter_by(id=get_id).first()
     if not verify:

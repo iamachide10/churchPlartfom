@@ -5,6 +5,8 @@ function UploadSermon() {
   const [sermonTitle, setSermonTitle] = useState("");
   const [sermonDate, setSermonDate] = useState("");
   const [audios, setAudios] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
 
   const handleAudioUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -19,35 +21,53 @@ function UploadSermon() {
     setAudios([...audios, ...newAudios]);
   };
 
-  const handleSermonSave = () => {
-    if (!pastorName || !sermonTitle || !sermonDate || audios.length === 0) {
-      alert("Please fill all fields and upload at least one audio.");
-      return;
+const handleSermonSave = async () => {
+  if (!pastorName || !sermonTitle || !sermonDate || audios.length === 0) {
+    alert("Please fill all fields and upload at least one audio.");
+    return;
+  }
+
+  // Prepare FormData
+  const formData = new FormData();
+  audios.forEach((audio) => {
+    formData.append("audios", audio); // all uploaded files
+  });
+
+  // Since all audios belong to one sermon, we can just repeat same details
+  audios.forEach(() => formData.append("preacher", pastorName));
+  audios.forEach(() => formData.append("title", sermonTitle));
+  audios.forEach(() => formData.append("date", sermonDate));
+
+  try {
+    setLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL;
+    const url = `${API_URL}/uploads/upload-audio`; // show spinner if using one
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Sermon uploaded successfully!");
+      console.log("Uploaded files:", data.success);
+    } else {
+      alert(`Error: ${data.message || "Upload failed"}`);
     }
 
-    const sermonData = {
-      id: Date.now(),
-      pastorName,
-      sermonTitle,
-      sermonDate,
-      audios,
-    };
-
-    // Save sermon into localStorage
-    const existingSermons = JSON.parse(localStorage.getItem("sermons") || "[]");
-    localStorage.setItem(
-      "sermons",
-      JSON.stringify([...existingSermons, sermonData])
-    );
-
-    alert("Sermon uploaded successfully!");
-
-    // Reset form
     setPastorName("");
     setSermonTitle("");
     setSermonDate("");
     setAudios([]);
-  };
+  } catch (error) {
+    console.error("Upload error:", error);
+    alert("Network error. Please try again.");
+  } finally {
+    setLoading(false); // hide spinner
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-white py-10 px-6">
@@ -102,6 +122,7 @@ function UploadSermon() {
           <h2 className="text-2xl font-semibold text-yellow-400 mb-4">
             Upload Audios
           </h2>
+          
           <input
             type="file"
             accept="audio/*"
@@ -134,6 +155,8 @@ function UploadSermon() {
             )}
           </div>
         </div>
+
+
 
         {/* Save Sermon */}
         <div className="mt-10">
