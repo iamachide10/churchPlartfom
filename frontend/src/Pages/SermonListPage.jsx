@@ -9,17 +9,17 @@ export const SermonListPage = () => {
  const [sermons, setSermons] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user,access_token } = useAuth();
 
   useEffect(() => {
     const fetchSermons = async () => {
-      console.log(user.access_token);
+      console.log(access_token);
       try {
         const API_URL = import.meta.env.VITE_API_URL;
         const url = `${API_URL}/uploads/get-sermons`;
         const response = await fetch(url, {
           headers: {
-            "Authorization": `Bearer ${user?.access_token}`,
+            "Authorization": `Bearer ${access_token}`,
           },
         });
 
