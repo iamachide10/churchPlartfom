@@ -9,8 +9,16 @@ function UploadSermon() {
   
 
   const handleAudioUpload = (e) => {
-      const newFiles = Array.from(e.target.files);
-      setAudios((prev) => [...prev, ...newFiles]);
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const newAudios = files.map((file) => ({
+  
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
+
+    setAudios([...audios, ...newAudios]);
   };
 
 const handleSermonSave = async () => {

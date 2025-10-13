@@ -43,3 +43,5 @@ Flask-Migrate==4.0.4
 Flask-RESTful==0.3.9
 boto3==1.28.26
 supabase==1.0.0
+pydub==0.25.1
+
