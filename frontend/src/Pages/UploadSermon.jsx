@@ -50,7 +50,7 @@ const handleSermonSave = async () => {
     const data = await response.json();
 
     if (response.ok) {
-      alert(data.message || "Sermon uploaded successfully!");
+      alert(data.message );
       console.log("Uploaded files:", data.success);
     } else {
       alert(`Error: ${data.message || "Upload failed"}`);
