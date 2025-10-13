@@ -1,4 +1,4 @@
-
+import { UploadSermonTrial } from "./Trial";
 import NavBar from "../Components/NavBar"; 
 import { SermonListPage } from "./SermonListPage"; 
 import Footer from "../Components/Footer";
@@ -12,13 +12,14 @@ import UploadSermon from "./UploadSermon";
 
 
 
+
 export const Main =()=>{
 
     return(<div>
         <NavBar/>
         <Routes>
             <Route path="/" element={<LandingPage/>}/>
-            <Route path="/upload" element={<UploadSermon />} />
+            <Route path="/upload" element={<UploadSermonTrial />} />
             <Route path="/sermons/:id" element={<SermonPackDetails />} />
             <Route path="/sign_in" element={<SignIn/>}/>
             <Route path="/sermons" element={<SermonListPage/>}/>

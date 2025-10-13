@@ -23,12 +23,9 @@ export const SermonListPage = () => {
         //   },
         // });
         const response = await fetch(url);
-        
-
         if (!response.ok) {
           throw new Error("Failed to fetch sermons");
         }
-
         const data = await response.json();
         setSermons(data.sermons || []);
         console.log(data.sermons);
@@ -47,9 +44,9 @@ export const SermonListPage = () => {
 
   if(!user) {
   return (
-    <h1 className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 lg:px-12 py-10 font-bold text-lg text-center mt-9">
+    <p className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 lg:px-12 py-10 font-bold text-lg text-center mt-9">
       Please Signin first
-    </h1>
+    </p>
   );
   }
 

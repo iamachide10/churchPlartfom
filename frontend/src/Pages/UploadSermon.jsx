@@ -32,11 +32,11 @@ const handleSermonSave = async () => {
   audios.forEach((audio) => {
     formData.append("audios", audio); // all uploaded files
   });
+ 
 
-  // Since all audios belong to one sermon, we can just repeat same details
-  audios.forEach(() => formData.append("preacher", pastorName));
-  audios.forEach(() => formData.append("title", sermonTitle));
-  audios.forEach(() => formData.append("date", sermonDate));
+  formData.append("preacher", pastorName)
+  formData.append("title", sermonTitle)
+  formData.append("date", sermonDate)
 
   try {
     setLoading(true);
@@ -50,7 +50,7 @@ const handleSermonSave = async () => {
     const data = await response.json();
 
     if (response.ok) {
-      alert("Sermon uploaded successfully!");
+      alert(data.message || "Sermon uploaded successfully!");
       console.log("Uploaded files:", data.success);
     } else {
       alert(`Error: ${data.message || "Upload failed"}`);
