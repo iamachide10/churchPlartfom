@@ -46,9 +46,14 @@ def audio_handling():
     title = request.form.get("title")
     timestamp = request.form.get("date")
 
-    if not all([audios, preacher, title, timestamp]):
-        return jsonify({"status": "error", "message": "Missing required fields"})
+   
+    print("FILES:", request.files)
+    print("FORM:", request.form)
 
+    if not preacher or not title or not timestamp or len(audios) == 0:
+        return jsonify({"status": "error", "message": "Missing required fields"})
+    
+    
     os.makedirs(current_app.config.get("TEMP_UPLOAD"), exist_ok=True)
     upload_folder = current_app.config.get("TEMP_UPLOAD")
 
