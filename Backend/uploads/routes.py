@@ -121,6 +121,7 @@ def get_sermons():
     # original_filename = db.Column(db.String(50),nullable=False)
     # filepath = db.Column(db.String(50),nullable=False)
     # storage_name = db.Column(db.String(120),nullable=False)
+    
     sermons = (
         db.session.query(
             AudioStorage.id,
@@ -131,6 +132,9 @@ def get_sermons():
         .distinct(AudioStorage.id)
         .all()
     )
+    print(">>> Retrieved sermons:", sermons)
+    data=AudioStorage.query.all()
+    print(">>> AudioStorage records:", data)
 
     sermon_list = [
         {

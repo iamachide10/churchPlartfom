@@ -10,6 +10,7 @@ from auth import auth_bp
 from uploads import uploads_bp  
 from celery.result import AsyncResult
 from flask_migrate import Migrate
+from models import AudioStorage
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["https://min-elistarminstry.onrender.com"])
@@ -31,6 +32,10 @@ print("Routes before registering:", auth_bp.deferred_functions)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(uploads_bp)
+
+data=AudioStorage.query.all()
+print(">>> AudioStorage records:", data)
+
 # @app.after_request
 # def after_request(response):
 #     print(">>> Response headers:", dict(response.headers))
