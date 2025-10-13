@@ -40,13 +40,15 @@ bucket = os.getenv("SUPABASE_S3_BUCKET")
 def audio_handling():
     # Get multiple audios
     audios = request.files.getlist("audios")
-
     # These are single values
     preacher = request.form.get("preacher")
     title = request.form.get("title")
     timestamp = request.form.get("date")
+    print("FILES RECEIVED:", request.files)
+    print("FORM RECEIVED:", request.form)
 
-    if not all([audios, preacher, title, timestamp]):
+
+    if not preacher or not title or not timestamp or len(audios) == 0:
         return jsonify({"status": "error", "message": "Missing required fields"})
 
     os.makedirs(current_app.config.get("TEMP_UPLOAD"), exist_ok=True)
