@@ -40,15 +40,13 @@ bucket = os.getenv("SUPABASE_S3_BUCKET")
 def audio_handling():
     # Get multiple audios
     audios = request.files.getlist("audios")
+
     # These are single values
     preacher = request.form.get("preacher")
     title = request.form.get("title")
     timestamp = request.form.get("date")
-    print("FILES RECEIVED:", request.files)
-    print("FORM RECEIVED:", request.form)
 
-
-    if not preacher or not title or not timestamp or len(audios) == 0:
+    if not all([audios, preacher, title, timestamp]):
         return jsonify({"status": "error", "message": "Missing required fields"})
 
     os.makedirs(current_app.config.get("TEMP_UPLOAD"), exist_ok=True)
@@ -57,38 +55,38 @@ def audio_handling():
     success_audios = []
     failed_audios = []
 
+    for audio in audios:
+        filename = secure_filename(audio.filename)
+        unique_name = f"{uuid.uuid4().hex}.mp3"
+        file_url = f"audios/{unique_name}"
+        file_path = os.path.join(upload_folder, unique_name)
+        audio.save(file_path)
+
+        status = check_file_validity(file_path)
+        if status != "not_file":
+            with open(status, "rb") as f:
+                s3.upload_fileobj(
+                    f,
+                    bucket_name,
+                    unique_name,
+                    ExtraArgs={"ACL": "private", "ContentType": status.mimetype},
+                )
+
+            audio_storage = AudioStorage(
+                preacher=preacher,
+                title=title,
+                timestamp=timestamp,
+                filepath=file_url,
+                original_filename=filename,
+                storage_name=unique_name,
+            )
+            db.session.add(audio_storage)
+            success_audios.append(filename)
+        else:
+            failed_audios.append(filename)
 
     try:
-        for audio in audios:
-            filename = secure_filename(audio.filename)
-            unique_name = f"{uuid.uuid4().hex}.mp3"
-            file_url = f"audios/{unique_name}"
-            file_path = os.path.join(upload_folder, unique_name)
-            audio.save(file_path)
-
-            status = check_file_validity(file_path)
-            if status != "not_file":
-                with open(status, "rb") as f:
-                    s3.upload_fileobj(
-                        f,
-                        bucket_name,
-                        unique_name,
-                        ExtraArgs={"ACL": "private", "ContentType": status.mimetype},
-                    )
-
-                audio_storage = AudioStorage(
-                    preacher=preacher,
-                    title=title,
-                    timestamp=timestamp,
-                    filepath=file_url,
-                    original_filename=filename,
-                    storage_name=unique_name,
-                )
-                db.session.add(audio_storage)
-                db.session.commit()
-                success_audios.append(filename)
-            else:
-                failed_audios.append(filename)
+        db.session.commit()
         return jsonify({"success": success_audios, "failed": failed_audios , "message":"audios uploaded"})
     except Exception as e:
         db.session.rollback()
@@ -137,7 +135,6 @@ def get_sermons():
     print(">>> Retrieved sermons:", sermons)
     data=AudioStorage.query.all()
     print(">>> AudioStorage records:", data)
-
     sermon_list = [
         {
             "id": sermon.id,
