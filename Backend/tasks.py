@@ -79,31 +79,41 @@ def send_emails(recipient, subject, body):
 
 
 
-def check_file_validity(audio_id):
+def check_file_validity(audio_path):
     try:
         uploads = os.path.join("sharks", "upload")
         os.makedirs(uploads, exist_ok=True)
 
-        # Detect file format from extension
-        file_ext = os.path.splitext(audio_id)[1].lower().replace(".", "")
-        if not file_ext:
-            file_ext = "aac"  # default fallback
+        # 🔍 Try to detect the file's MIME type automatically
+        mime_type, _ = mimetypes.guess_type(audio_path)
+        file_ext = os.path.splitext(audio_path)[1].lower().replace(".", "")
 
-        # Try loading the audio file
-        audio_segment = AudioSegment.from_file(audio_id, format=file_ext)
+        # ✅ Let ffmpeg auto-detect if unsure
+        try:
+            audio_segment = AudioSegment.from_file(audio_path)
+        except Exception as e1:
+            # Retry with extension-based format if ffmpeg fails to auto-detect
+            try:
+                audio_segment = AudioSegment.from_file(audio_path, format=file_ext)
+            except Exception as e2:
+                print(f"Both auto-detect and manual format detection failed: {e2}")
+                if os.path.exists(audio_path):
+                    os.remove(audio_path)
+                return "not_file"
 
-        # Export to mp3
+        # 🎧 Export to MP3
         output_path = os.path.join(uploads, f"{uuid.uuid4()}.mp3")
         audio_segment.export(output_path, format="mp3", bitrate="192k")
 
-        # Remove original file if it exists
-        if os.path.exists(audio_id):
-            os.remove(audio_id)
+        # 🧹 Clean up original file
+        if os.path.exists(audio_path):
+            os.remove(audio_path)
 
         return output_path
 
     except Exception as e:
-        if os.path.exists(audio_id):
-            os.remove(audio_id)
-        me_logger.error(f"Error, audio segment couldn't detect format: {e}")
+        if os.path.exists(audio_path):
+            os.remove(audio_path)
+        print(f"Error processing audio file: {e}")
         return "not_file"
+
