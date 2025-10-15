@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Spinner from "../Components/spinser";
+
 
 function UploadSermon() {
   const [pastorName, setPastorName] = useState("");
@@ -22,6 +24,7 @@ function UploadSermon() {
   };
 
 const handleSermonSave = async () => {
+  
   if (!pastorName || !sermonTitle || !sermonDate || audios.length === 0) {
     alert("Please fill all fields and upload at least one audio.");
     return;
@@ -67,6 +70,11 @@ const handleSermonSave = async () => {
     setLoading(false); // hide spinner
   }
 };
+
+
+ if(loading){
+    return <Spinner/>
+  }
 
 
   return (
