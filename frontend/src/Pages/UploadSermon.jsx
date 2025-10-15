@@ -15,7 +15,8 @@ function UploadSermon() {
     if (files.length === 0) return;
 
     const newAudios = files.map((file) => ({
-  
+
+  file,
       name: file.name,
       url: URL.createObjectURL(file),
     }));
@@ -33,7 +34,7 @@ const handleSermonSave = async () => {
   // Prepare FormData
   const formData = new FormData();
   audios.forEach((audio) => {
-    formData.append("audios", audio); // all uploaded files
+    formData.append("audios", audio.file); // all uploaded files
   });
  
 
