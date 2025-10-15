@@ -65,8 +65,7 @@ def send_emails(recipient, subject, body):
 #         # Add HTML version (for clickable link)
 #         if html_body:
 #             mail.add_content(Content("text/html", html_body))
-#         print("email at the verge of finishing")
-#         sg = SendGridAPIClient(api_key)
+#         print("email at the verge of finishing")tasks.py#         sg = SendGridAPIClient(api_key)
 #         print("Email almost done")
 #         response = sg.send(mail)
 #         return "success"
@@ -75,27 +74,36 @@ def send_emails(recipient, subject, body):
 #         return None        
 
 
+
+
+
+
+
 def check_file_validity(audio_id):
     try:
-        audio = File(audio_id)
+        uploads = os.path.join("sharks", "upload")
+        os.makedirs(uploads, exist_ok=True)
+
+        # Detect file format from extension
+        file_ext = os.path.splitext(audio_id)[1].lower().replace(".", "")
+        if not file_ext:
+            file_ext = "aac"  # default fallback
+
+        # Try loading the audio file
+        audio_segment = AudioSegment.from_file(audio_id, format=file_ext)
+
+        # Export to mp3
+        output_path = os.path.join(uploads, f"{uuid.uuid4()}.mp3")
+        audio_segment.export(output_path, format="mp3", bitrate="192k")
+
+        # Remove original file if it exists
+        if os.path.exists(audio_id):
+            os.remove(audio_id)
+
+        return output_path
+
     except Exception as e:
-        os.remove(audio_id)
-        me_logger.error(f"An error occurred during file validation:{e}")
+        if os.path.exists(audio_id):
+            os.remove(audio_id)
+        me_logger.error(f"Error, audio segment couldn't detect format: {e}")
         return "not_file"
-    if audio is None:
-        os.remove(audio_id)
-        return "not_file"
-    try:
-        uploads = os.path.join("sharks","upload")
-        os.makedirs(uploads,exist_ok=True)
-        audio_segment = AudioSegment.from_file(audio_id)
-        audio_segment.export(uploads,format="mp3",bitrate="192k")
-        os.remove(audio_id)
-        return uploads
-    except Exception as e:
-        os.remove(audio_id)
-        me_logger.error(f"Error, audio segment couldn't detect format:{e}")
-        return "not_file"
-
-
-
