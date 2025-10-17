@@ -9,6 +9,7 @@ import SignUp from "./sign_page";
 import AboutUs from "./AboutUsPage";
 import SermonPackDetails from "./SermonPackDetail";
 import UploadSermon from "./UploadSermon";
+import { UploadSermonTrial } from "./Trial";
 
 
 
