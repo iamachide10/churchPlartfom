@@ -75,7 +75,7 @@ def audio_handling():
                             raise Exception(res["error"]["message"])
 
                     # Get public URL (so users can access it directly)
-                    public_url = supabase.storage.from_(SUPABASE_BUCKET).get_public_url(unique_name)
+                    public_url = supabase.storage().from_(SUPABASE_BUCKET).get_public_url(unique_name)
 
                     # Save record to database
                     audio_storage = AudioStorage(
