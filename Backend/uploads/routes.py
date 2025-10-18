@@ -13,6 +13,8 @@ from urllib.parse import urljoin
 from flask_jwt_extended import jwt_required,get_jwt_identity
 from supabase import create_client
 from models import User
+import mimetypes
+
 
 my_only = normal_logs()
 
@@ -36,6 +38,7 @@ supabase = create_client(supabase_url,supabase_key)
 
 bucket = os.getenv("SUPABASE_BUCKET")
 
+
 @uploads_bp.route("/upload-audio", methods=["POST"])
 def audio_handling():
     # Get multiple audios
@@ -46,14 +49,14 @@ def audio_handling():
     title = request.form.get("title")
     timestamp = request.form.get("date")
 
-   
     print("FILES:", request.files)
     print("FORM:", request.form)
 
+    # Validate inputs
     if not preacher or not title or not timestamp or len(audios) == 0:
         return jsonify({"status": "error", "message": "Missing required fields"})
-    
-    
+
+    # Ensure upload directory exists
     os.makedirs(current_app.config.get("TEMP_UPLOAD"), exist_ok=True)
     upload_folder = current_app.config.get("TEMP_UPLOAD")
 
@@ -61,42 +64,69 @@ def audio_handling():
     failed_audios = []
 
     for audio in audios:
-        filename = secure_filename(audio.filename)
-        unique_name = f"{uuid.uuid4().hex}.mp3"
-        file_url = f"audios/{unique_name}"
-        file_path = os.path.join(upload_folder, unique_name)
-        audio.save(file_path)
+        try:
+            # Secure filename and save temporarily
+            filename = secure_filename(audio.filename)
+            temp_name = f"{uuid.uuid4().hex}_{filename}"
+            temp_path = os.path.join(upload_folder, temp_name)
+            audio.save(temp_path)
 
-        status = check_file_validity(file_path)
-        if status != "not_file":
-            with open(status, "rb") as f:
-                s3.upload_fileobj(
-                    f,
-                    bucket_name,
-                    unique_name,
-                    ExtraArgs={"ACL": "private", "ContentType": status.mimetype},
+            # Convert and validate audio
+            converted_path = check_file_validity(temp_path)
+
+            if converted_path != "not_file":
+                # Detect MIME type (based on file extension)
+                mime_type, _ = mimetypes.guess_type(converted_path)
+                mime_type = mime_type or "audio/mpeg"
+
+                unique_name = f"{uuid.uuid4().hex}.mp3"
+                file_url = f"audios/{unique_name}"
+
+                # Upload to S3
+                with open(converted_path, "rb") as f:
+                    s3.upload_fileobj(
+                        f,
+                        bucket_name,
+                        unique_name,
+                        ExtraArgs={"ACL": "private", "ContentType": mime_type},
+                    )
+
+                # Save record to database
+                audio_storage = AudioStorage(
+                    preacher=preacher,
+                    title=title,
+                    timestamp=timestamp,
+                    filepath=file_url,
+                    original_filename=filename,
+                    storage_name=unique_name,
                 )
+                db.session.add(audio_storage)
+                success_audios.append(filename)
 
-            audio_storage = AudioStorage(
-                preacher=preacher,
-                title=title,
-                timestamp=timestamp,
-                filepath=file_url,
-                original_filename=filename,
-                storage_name=unique_name,
-            )
-            db.session.add(audio_storage)
-            success_audios.append(filename)
-        else:
-            failed_audios.append(filename)
+                # Clean up local converted file
+                os.remove(converted_path)
 
+            else:
+                failed_audios.append(filename)
+
+        except Exception as e:
+            my_only.error(f"Error processing {audio.filename}: {e}")
+            failed_audios.append(audio.filename)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    # Commit to DB
     try:
         db.session.commit()
-        return jsonify({"success": success_audios, "failed": failed_audios , "message":"audios uploaded"})
+        return jsonify({
+            "success": success_audios,
+            "failed": failed_audios,
+            "message": "Audios uploaded successfully"
+        })
     except Exception as e:
         db.session.rollback()
-        my_only.error(f"An error occurred {e}")
-        return jsonify({"status": "error", "message": "Please an error occurred."})
+        my_only.error(f"Database error: {e}")
+        return jsonify({"status": "error", "message": "An error occurred while saving records."})
 
 
 def generate_presigned_url(filename):
