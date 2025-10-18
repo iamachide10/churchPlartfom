@@ -64,9 +64,9 @@ class SessionStorage(db.Model):
 
 class AudioStorage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    preacher = db.Column(db.String(30), nullable=False)
+    preacher = db.Column(db.String(100), nullable=False)
     title = db.Column(db.String(400), nullable=False)
-    time_stamp = db.Column(db.String(15), nullable=False)
-    original_filename = db.Column(db.String(50),nullable=False)
-    filepath = db.Column(db.String(50),nullable=False)
-    storage_name = db.Column(db.String(120),nullable=False)
+    time_stamp = db.Column(db.String(50), nullable=False)
+    original_filename = db.Column(db.String(200),nullable=False)
+    filepath = db.Column(db.String(300),nullable=False)
+    storage_name = db.Column(db.String(300),nullable=False)
