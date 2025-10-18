@@ -78,7 +78,7 @@ def audio_handling():
                         "title": title,
                         "time_stamp": timestamp,
                         "original_filename": filename,
-                        "filepath": public_url,
+                        "file_path": public_url,
                         "storage_name": unique_name
                     }
 
