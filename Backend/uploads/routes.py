@@ -124,7 +124,7 @@ def get_sermons():
                 "id": record.get("id"),
                 "pastorName": record.get("preacher"),
                 "sermonTitle": record.get("title"),
-                "sermonDate": record.get("time_stamp")
+                "sermonDate": record.get("timestamp")
             }
             for record in records
         ]
@@ -153,7 +153,7 @@ def get_sermon_audios(sermon_id):
             "id": record.get("id"),
             "preacher": record.get("preacher"),
             "title": record.get("title"),
-            "timestamp": record.get("time_stamp"),
+            "timestamp": record.get("timestamp"),
             "audios": [
                 {
                     "name": record.get("original_filename"),
