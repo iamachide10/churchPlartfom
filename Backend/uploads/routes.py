@@ -72,9 +72,7 @@ def audio_handling():
                     # ✅ Upload to Supabase correctly
                     with open(converted_path, "rb") as f:
                         response = supabase.storage().from_(SUPABASE_BUCKET).upload(unique_name, f)
-                    if response.get("error"):
-                        raise Exception(response["error"]["message"])
-
+                
                     # ✅ Get public URL correctly
                     public_url = supabase.storage().from_(SUPABASE_BUCKET).get_public_url(unique_name)
 
