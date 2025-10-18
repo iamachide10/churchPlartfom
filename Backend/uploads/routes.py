@@ -76,7 +76,7 @@ def audio_handling():
                     data = {
                         "preacher": preacher,
                         "title": title,
-                        "time_stamp": timestamp,
+                        "timestamp": timestamp,
                         "original_filename": filename,
                         "file_path": public_url,
                         "storage_name": unique_name
