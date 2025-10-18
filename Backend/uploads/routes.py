@@ -31,6 +31,7 @@ def audio_handling():
     print("supabase type:", type(supabase))
     print("🔍 SUPABASE_URL =", SUPABASE_URL)
     print("🔍 SUPABASE_KEY=", SUPABASE_KEY)
+    print("🔍 SUPABASE_Name=", SUPABASE_BUCKET)
 
     try:
         audios = request.files.getlist("audios")
