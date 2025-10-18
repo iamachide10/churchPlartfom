@@ -2,7 +2,6 @@ from . import uploads_bp
 from flask import jsonify, request, current_app
 import uuid, os, mimetypes
 from mutagen import File
-from models import AudioStorage, db
 from app_logging import normal_logs
 from tasks import check_file_validity
 from werkzeug.utils import secure_filename
@@ -65,29 +64,27 @@ def audio_handling():
                     mime_type, _ = mimetypes.guess_type(converted_path)
                     mime_type = mime_type or "audio/mpeg"
                     unique_name = f"{uuid.uuid4().hex}_{filename}"
-                    
-                    # Corrected inside your audio_handling() function:
 
-
-                    # ✅ Upload to Supabase correctly
+                    # ✅ Upload to Supabase
                     with open(converted_path, "rb") as f:
-                        response = supabase.storage().from_(SUPABASE_BUCKET).upload(unique_name, f)
-                
-                    # ✅ Get public URL correctly
-                    public_url = supabase.storage().from_(SUPABASE_BUCKET).get_public_url(unique_name)
+                        supabase.storage.from_(SUPABASE_BUCKET).upload(unique_name, f)
 
-                    # ✅ Save record to DB
-                    audio_storage = AudioStorage(
-                        preacher=preacher,
-                        title=title,
-                        time_stamp=timestamp,
-                        filepath=public_url,
-                        original_filename=filename,
-                        storage_name=unique_name,
-                    )
-                    db.session.add(audio_storage)
+                    # ✅ Get public URL
+                    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{unique_name}"
+
+                    # ✅ Save record directly to Supabase table
+                    data = {
+                        "preacher": preacher,
+                        "title": title,
+                        "time_stamp": timestamp,
+                        "original_filename": filename,
+                        "filepath": public_url,
+                        "storage_name": unique_name
+                    }
+
+                    supabase.table("audio_storage").insert(data).execute()
+
                     success_audios.append(filename)
-
                     os.remove(converted_path)
 
                 else:
@@ -100,8 +97,6 @@ def audio_handling():
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
 
-        db.session.commit()
-
         return jsonify({
             "status": "success",
             "message": "Audios uploaded successfully",
@@ -110,7 +105,6 @@ def audio_handling():
         }), 200
 
     except Exception as e:
-        db.session.rollback()
         my_only.error(f"Upload failed: {e}")
         return jsonify({"status": "error", "message": "Upload failed"}), 500
 
@@ -118,32 +112,28 @@ def audio_handling():
 # ---------------- GET ALL SERMONS ---------------- #
 @uploads_bp.route("/get-sermons", methods=["GET"])
 def get_sermons():
-    print(">>> Inside get_sermons endpoint")
+    try:
+        response = supabase.table("audio_storage").select("*").execute()
+        records = response.data or []
 
-    sermons = (
-        db.session.query(
-            AudioStorage.id,
-            AudioStorage.preacher,
-            AudioStorage.title,
-            AudioStorage.time_stamp
-        )
-        .distinct(AudioStorage.id)
-        .all()
-    )
+        if not records:
+            return jsonify({"status": "error", "message": "No sermons found"}), 404
 
-    print(">>> Retrieved sermons:", sermons)
+        sermons = [
+            {
+                "id": record.get("id"),
+                "pastorName": record.get("preacher"),
+                "sermonTitle": record.get("title"),
+                "sermonDate": record.get("time_stamp")
+            }
+            for record in records
+        ]
 
-    sermon_list = [
-        {
-            "id": sermon.id,
-            "pastorName": sermon.preacher,
-            "sermonTitle": sermon.title,
-            "sermonDate": sermon.time_stamp
-        }
-        for sermon in sermons
-    ]
+        return jsonify({"status": "success", "sermons": sermons}), 200
 
-    return jsonify({"status": "success", "sermons": sermon_list}), 200
+    except Exception as e:
+        my_only.error(f"Error fetching sermons: {e}")
+        return jsonify({"status": "error", "message": "Failed to get sermons"}), 500
 
 
 # ---------------- GET SERMON AUDIOS ---------------- #
@@ -151,24 +141,26 @@ def get_sermons():
 @jwt_required(optional=True)
 def get_sermon_audios(sermon_id):
     try:
-        sermon_audios = AudioStorage.query.filter_by(id=sermon_id).all()
-        if not sermon_audios:
+        response = supabase.table("audio_storage").select("*").eq("id", sermon_id).execute()
+        records = response.data or []
+
+        if not records:
             return jsonify({"status": "error", "message": "No audios found"}), 404
 
-        sermon_data = {
-            "id": sermon_id,
-            "preacher": sermon_audios[0].preacher,
-            "title": sermon_audios[0].title,
-            "timestamp": sermon_audios[0].time_stamp,
-            "audios": []
-        }
+        record = records[0]
 
-        for audio in sermon_audios:
-            sermon_data["audios"].append({
-                "id": audio.id,
-                "name": audio.original_filename,
-                "url": audio.filepath
-            })
+        sermon_data = {
+            "id": record.get("id"),
+            "preacher": record.get("preacher"),
+            "title": record.get("title"),
+            "timestamp": record.get("time_stamp"),
+            "audios": [
+                {
+                    "name": record.get("original_filename"),
+                    "url": record.get("filepath")
+                }
+            ]
+        }
 
         return jsonify({"status": "success", "sermon": sermon_data}), 200
 
