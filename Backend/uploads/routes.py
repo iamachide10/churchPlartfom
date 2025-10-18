@@ -26,13 +26,14 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ---------------- UPLOAD AUDIO ---------------- #
 @uploads_bp.route("/upload-audio", methods=["POST"])
 
-print("SUPABASE_URL:", SUPABASE_URL is not None)
-print("SUPABASE_KEY:", SUPABASE_KEY is not None)
-print("supabase type:", type(supabase))
-print("has attr 'storage'?:", hasattr(supabase, "storage"))
-print("supabase.storage type:", type(getattr(supabase, "storage", None)))
-print("dir(supabase)[:40]:", dir(supabase)[:40])
+
 def audio_handling():
+    print("SUPABASE_URL:", SUPABASE_URL is not None)
+    print("SUPABASE_KEY:", SUPABASE_KEY is not None)
+    print("supabase type:", type(supabase))
+    print("has attr 'storage'?:", hasattr(supabase, "storage"))
+    print("supabase.storage type:", type(getattr(supabase, "storage", None)))
+    print("dir(supabase)[:40]:", dir(supabase)[:40])
     try:
         audios = request.files.getlist("audios")
         preacher = request.form.get("preacher")
