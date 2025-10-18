@@ -34,7 +34,7 @@ supabase_key = os.getenv("SUPABASE_KEY")
 supabase = create_client(supabase_url,supabase_key)
 
 
-bucket = os.getenv("SUPABASE_S3_BUCKET")
+bucket = os.getenv("SUPABASE_BUCKET")
 
 @uploads_bp.route("/upload-audio", methods=["POST"])
 def audio_handling():
