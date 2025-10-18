@@ -67,7 +67,7 @@ def audio_handling():
 
                     # ✅ Upload to Supabase
                     with open(converted_path, "rb") as f:
-                        supabase.storage.from_(SUPABASE_BUCKET).upload(unique_name, f)
+                        supabase.storage().from_(SUPABASE_BUCKET).upload(unique_name, f)
 
                     # ✅ Get public URL
                     public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{unique_name}"
