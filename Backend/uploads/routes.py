@@ -27,7 +27,7 @@ s3 = boto3.client("s3",
         endpoint_url=os.getenv("ENDPOINT_URL")
         )
 
-bucket_name = os.getenv("SUPABASE_S3_BUCKET")
+bucket_name = os.getenv("SUPABASE_BUCKET")
 endpoint = os.getenv("ENDPOINT_URL")
 
 supabase_url = os.getenv("SUPABASE_URL")
@@ -36,7 +36,6 @@ supabase_key = os.getenv("SUPABASE_KEY")
 supabase = create_client(supabase_url,supabase_key)
 
 
-bucket = os.getenv("SUPABASE_BUCKET")
 
 
 @uploads_bp.route("/upload-audio", methods=["POST"])
