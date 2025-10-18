@@ -2,13 +2,13 @@ from . import uploads_bp
 from flask import jsonify, request, current_app
 import uuid, os, mimetypes
 from mutagen import File
-from models import AudioStorage, db, User
+from models import AudioStorage, db
 from app_logging import normal_logs
 from tasks import check_file_validity
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
-from supabase import create_client
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from supabase import create_client, Client
+from flask_jwt_extended import jwt_required
 
 # Initialize logger
 my_only = normal_logs()
@@ -21,19 +21,15 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ---------------- UPLOAD AUDIO ---------------- #
 @uploads_bp.route("/upload-audio", methods=["POST"])
-
-
 def audio_handling():
-    print("SUPABASE_URL:", SUPABASE_URL is not None)
-    print("SUPABASE_KEY:", SUPABASE_KEY is not None)
+    print("SUPABASE_URL:", bool(SUPABASE_URL))
+    print("SUPABASE_KEY:", bool(SUPABASE_KEY))
     print("supabase type:", type(supabase))
-    print("has attr 'storage'?:", hasattr(supabase, "storage"))
-    print("supabase.storage type:", type(getattr(supabase, "storage", None)))
-    print("dir(supabase)[:40]:", dir(supabase)[:40])
+
     try:
         audios = request.files.getlist("audios")
         preacher = request.form.get("preacher")
@@ -59,25 +55,22 @@ def audio_handling():
                 temp_path = os.path.join(upload_folder, temp_name)
                 audio.save(temp_path)
 
-                # Validate/convert file
+                # Validate or convert file
                 converted_path = check_file_validity(temp_path)
 
                 if converted_path != "not_file":
                     mime_type, _ = mimetypes.guess_type(converted_path)
                     mime_type = mime_type or "audio/mpeg"
+                    unique_name = f"{uuid.uuid4().hex}_{filename}"
 
-                    unique_name = f"{uuid.uuid4().hex}.mp3"
-
-                    # Upload to Supabase
+                    # ✅ Upload to Supabase correctly
                     with open(converted_path, "rb") as f:
-                        res = supabase.storage.from_(SUPABASE_BUCKET).upload(unique_name, f)
-                        if res.get("error"):
-                            raise Exception(res["error"]["message"])
+                        response = supabase.storage.from_(SUPABASE_BUCKET).upload(unique_name, f)
 
-                    # Get public URL (so users can access it directly)
-                    public_url = supabase.storage().from_(SUPABASE_BUCKET).get_public_url(unique_name)
+                    # ✅ Get public URL correctly
+                    public_url = supabase.storage.from_(SUPABASE_BUCKET).get_public_url(unique_name)
 
-                    # Save record to database
+                    # ✅ Save record to DB
                     audio_storage = AudioStorage(
                         preacher=preacher,
                         title=title,
@@ -101,7 +94,6 @@ def audio_handling():
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
 
-        # Commit to DB
         db.session.commit()
 
         return jsonify({
@@ -169,7 +161,7 @@ def get_sermon_audios(sermon_id):
             sermon_data["audios"].append({
                 "id": audio.id,
                 "name": audio.original_filename,
-                "url": audio.filepath  # direct public Supabase link
+                "url": audio.filepath
             })
 
         return jsonify({"status": "success", "sermon": sermon_data}), 200
