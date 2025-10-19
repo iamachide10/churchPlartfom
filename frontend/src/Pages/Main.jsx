@@ -20,7 +20,7 @@ export const Main =()=>{
         <Routes>
             <Route path="/" element={<LandingPage/>}/>
             <Route path="/upload" element={<UploadSermon />} />
-            <Route path="/sermons/:id" element={<SermonPackDetails />} />
+            <Route path="/sermon/:title" element={<SermonPackDetails />} />
             <Route path="/sign_in" element={<SignIn/>}/>
             <Route path="/sermons" element={<SermonListPage/>}/>
             <Route path="/sign_up" element={<SignUp/>}/>
