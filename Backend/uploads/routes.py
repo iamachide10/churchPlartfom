@@ -149,28 +149,29 @@ def get_sermons():
 
 
 # ---------------- GET SERMON AUDIOS ---------------- #
-@uploads_bp.route("/get-sermon-audios/<int:sermon_id>", methods=["GET"])
+@uploads_bp.route("/get-sermon-audios/<string:sermon_title>", methods=["GET"])
 @jwt_required(optional=True)
-def get_sermon_audios(sermon_id):
+def get_sermon_audios(sermon_title):
     try:
-        response = supabase.table("audio_storage").select("*").eq("id", sermon_id).execute()
+        # Fetch all audios that match the given sermon title
+        response = supabase.table("audio_storage").select("*").eq("title", sermon_title).execute()
         records = response.data or []
 
         if not records:
-            return jsonify({"status": "error", "message": "No audios found"}), 404
+            return jsonify({"status": "error", "message": "No audios found for this sermon"}), 404
 
-        record = records[0]
-
+        # Extract preacher and date from the first record (since they're the same for all audios)
+        sample = records[0]
         sermon_data = {
-            "id": record.get("id"),
-            "preacher": record.get("preacher"),
-            "title": record.get("title"),
-            "timestamp": record.get("timestamp"),
+            "title": sample.get("title"),
+            "preacher": sample.get("preacher"),
+            "timestamp": sample.get("timestamp"),
             "audios": [
                 {
                     "name": record.get("original_filename"),
                     "url": record.get("filepath")
                 }
+                for record in records
             ]
         }
 
@@ -178,4 +179,7 @@ def get_sermon_audios(sermon_id):
 
     except Exception as e:
         my_only.error(f"Error fetching sermon audios: {e}")
-        return jsonify({"status": "error", "message": "Failed to get sermon audios"}), 500
+        return jsonify({
+            "status": "error",
+            "message": "Failed to get sermon audios"
+        }), 500
