@@ -22,7 +22,6 @@ SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ---------------- UPLOAD AUDIO ---------------- #
 @uploads_bp.route("/upload-audio", methods=["POST"])
 def audio_handling():
     print("SUPABASE_URL:", bool(SUPABASE_URL))
@@ -41,7 +40,7 @@ def audio_handling():
         print("FILES:", request.files)
         print("FORM:", request.form)
 
-        # Validate input
+        # Validate inputs
         if not preacher or not title or not timestamp or len(audios) == 0:
             return jsonify({"status": "error", "message": "Missing required fields"}), 400
 
@@ -50,6 +49,31 @@ def audio_handling():
 
         success_audios, failed_audios = [], []
 
+        # 🔍 Step 1: Check if a sermon already exists
+        existing_sermon = (
+            supabase.table("sermons")
+            .select("*")
+            .eq("preacher", preacher)
+            .eq("title", title)
+            .eq("timestamp", timestamp)
+            .execute()
+        )
+
+        if existing_sermon.data and len(existing_sermon.data) > 0:
+            sermon_id = existing_sermon.data[0]["id"]
+            print(f"Existing sermon found → ID: {sermon_id}")
+        else:
+            # 🎯 Step 2: Create a new sermon
+            sermon_record = {
+                "preacher": preacher,
+                "title": title,
+                "timestamp": timestamp,
+            }
+            new_sermon = supabase.table("sermons").insert(sermon_record).execute()
+            sermon_id = new_sermon.data[0]["id"]
+            print(f"New sermon created → ID: {sermon_id}")
+
+        # 🎧 Step 3: Upload each audio file under that sermon ID
         for audio in audios:
             try:
                 filename = secure_filename(audio.filename)
@@ -57,34 +81,35 @@ def audio_handling():
                 temp_path = os.path.join(upload_folder, temp_name)
                 audio.save(temp_path)
 
-                # Validate or convert file
                 converted_path = check_file_validity(temp_path)
 
                 if converted_path != "not_file":
                     mime_type, _ = mimetypes.guess_type(converted_path)
                     mime_type = mime_type or "audio/mpeg"
-                    unique_name = f"{uuid.uuid4().hex}_{filename}"
+                    unique_name = f"{sermon_id}_{uuid.uuid4().hex}_{filename}"
+                    supabase_path = f"sermons/{sermon_id}/{unique_name}"
 
-                    # ✅ Upload to Supabase
+                    # ✅ Upload to Supabase Storage
                     with open(converted_path, "rb") as f:
-                        supabase.storage().from_(SUPABASE_BUCKET).upload(unique_name, f)
+                        supabase.storage().from_(SUPABASE_BUCKET).upload(supabase_path, f)
 
                     # ✅ Get public URL
-                    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{unique_name}"
+                    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{supabase_path}"
 
-                    # ✅ Save record directly to Supabase table
-                    data = {
+                    # ✅ Save to Supabase audio_storage table
+                    audio_data = {
+                        "sermon_id": sermon_id,
                         "preacher": preacher,
                         "title": title,
                         "timestamp": timestamp,
                         "original_filename": filename,
-                        "file_path": public_url,
-                        "storage_name": unique_name
+                        "filepath": public_url,
+                        "storage_name": unique_name,
                     }
 
-                    supabase.table("audio_storage").insert(data).execute()
-
+                    supabase.table("audio_storage").insert(audio_data).execute()
                     success_audios.append(filename)
+
                     os.remove(converted_path)
 
                 else:
@@ -100,15 +125,13 @@ def audio_handling():
         return jsonify({
             "status": "success",
             "message": "Audios uploaded successfully",
+            "sermon_id": sermon_id,
             "uploaded": success_audios,
             "failed": failed_audios
         }), 200
-
     except Exception as e:
         my_only.error(f"Upload failed: {e}")
         return jsonify({"status": "error", "message": "Upload failed"}), 500
-
-
 # ---------------- GET ALL SERMONS ---------------- #
 @uploads_bp.route("/get-sermons", methods=["GET"])
 def get_sermons():
@@ -120,16 +143,16 @@ def get_sermons():
         if not records:
             return jsonify({"status": "error", "message": "No sermons found"}), 404
 
-        # Use a dictionary to ensure only one entry per sermon title
+        # Use a dictionary to ensure one entry per unique sermon_id
         unique_sermons = {}
         for record in records:
-            title = record.get("title")
-            if title not in unique_sermons:
-                unique_sermons[title] = {
-                    "id": record.get("id"),
+            sermon_id = record.get("sermon_id")
+            if sermon_id not in unique_sermons:
+                unique_sermons[sermon_id] = {
+                    "sermon_id": sermon_id,
                     "pastorName": record.get("preacher"),
                     "sermonTitle": record.get("title"),
-                    "sermonDate": record.get("timestamp")
+                    "sermonDate": record.get("timestamp"),
                 }
 
         # Convert dictionary values to a list
@@ -147,29 +170,30 @@ def get_sermons():
             "message": "Failed to get sermons"
         }), 500
 
-
+        
 # ---------------- GET SERMON AUDIOS ---------------- #
-@uploads_bp.route("/get-sermon-audios/<string:sermon_title>", methods=["GET"])
+@uploads_bp.route("/get-sermon-audios/<string:sermon_id>", methods=["GET"])
 @jwt_required(optional=True)
-def get_sermon_audios(sermon_title):
+def get_sermon_audios(sermon_id):
     try:
-        # Fetch all audios that match the given sermon title
-        response = supabase.table("audio_storage").select("*").eq("title", sermon_title).execute()
+        # Fetch all audios that match the given sermon_id
+        response = supabase.table("audio_storage").select("*").eq("sermon_id", sermon_id).execute()
         records = response.data or []
 
         if not records:
             return jsonify({"status": "error", "message": "No audios found for this sermon"}), 404
 
-        # Extract preacher and date from the first record (since they're the same for all audios)
+        # Extract sermon info from the first record (since they're the same for all audios)
         sample = records[0]
         sermon_data = {
+            "sermon_id": sample.get("sermon_id"),
             "title": sample.get("title"),
             "preacher": sample.get("preacher"),
             "timestamp": sample.get("timestamp"),
             "audios": [
                 {
                     "name": record.get("original_filename"),
-                    "url": record.get("filepath")
+                    "url": record.get("file_path")  # fixed typo (was filepath)
                 }
                 for record in records
             ]
