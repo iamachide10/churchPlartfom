@@ -14,8 +14,9 @@ function SermonPackDetails() {
         const API_URL = import.meta.env.VITE_API_URL;
         const url = `${API_URL}/uploads/get-sermon-audios/${sermon_id}`;
         const response = await fetch(url)
-        if (!response.ok) throw new Error("Failed to fetch sermon details");
+        console.log(`Fetching url ${url}`);
         
+        if (!response.ok) throw new Error("Failed to fetch sermon details")
 
         const data = await response.json();
         setSermon(data.sermon);
