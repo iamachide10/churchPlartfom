@@ -1,9 +1,10 @@
-import { useParams } from "react-router-dom";
+iimport { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 function SermonPackDetails() {
-  const { id } = useParams();
+  // we now use "title" instead of "id"
+  const { title } = useParams();
   const { user } = useAuth();
   const [sermon, setSermon] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,11 +13,14 @@ function SermonPackDetails() {
     const fetchSermonDetails = async () => {
       try {
         const API_URL = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${API_URL}/uploads/get-sermon-audios/${id}`, {
-          headers: {
-            "Authorization": `Bearer ${user?.access_token}`,
-          },
-        });
+        const response = await fetch(
+          `${API_URL}/uploads/get-sermon-audios/${encodeURIComponent(title)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${user?.access_token}`,
+            },
+          }
+        );
 
         if (!response.ok) throw new Error("Failed to fetch sermon details");
 
@@ -28,8 +32,9 @@ function SermonPackDetails() {
         setLoading(false);
       }
     };
+
     fetchSermonDetails();
-  }, [id, user]);
+  }, [title, user]);
 
   if (loading)
     return (
@@ -51,28 +56,36 @@ function SermonPackDetails() {
         <h1 className="text-3xl font-bold text-yellow-400 mb-7">
           {sermon.title}
         </h1>
+
         <p className="text-gray-300 mb-2">
           <span className="text-yellow-300">Pastor:</span> {sermon.preacher}
         </p>
         <p className="text-gray-400 mb-6">
-          <span className="text-yellow-300">Date:</span> {sermon.timestamp}
+          <span className="text-yellow-300">Date:</span>{" "}
+          {new Date(sermon.timestamp).toLocaleDateString()}
         </p>
 
-        <h2 className="text-2xl font-semibold text-yellow-400 mb-4">
-          Audios
-        </h2>
+        <h2 className="text-2xl font-semibold text-yellow-400 mb-4">Audios</h2>
 
-        {sermon.audios.map((audio, index) => (
-          <div
-            key={audio.id}
-            className="bg-gray-800 p-4 mb-4 rounded-lg shadow-lg"
-          >
-            <p className="font-semibold text-yellow-200 mb-2">
-              Audio {index + 1}: {audio.name}
-            </p>
-            <audio controls src={audio.url} className="w-full rounded-lg" />
-          </div>
-        ))}
+        {sermon.audios.length > 0 ? (
+          sermon.audios.map((audio, index) => (
+            <div
+              key={index}
+              className="bg-gray-800 p-4 mb-4 rounded-lg shadow-lg"
+            >
+              <p className="font-semibold text-yellow-200 mb-2">
+                Audio {index + 1}: {audio.name}
+              </p>
+              <audio
+                controls
+                src={audio.url}
+                className="w-full rounded-lg focus:outline-none"
+              />
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400">No audios available for this sermon.</p>
+        )}
       </div>
     </div>
   );
