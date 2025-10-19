@@ -113,27 +113,39 @@ def audio_handling():
 @uploads_bp.route("/get-sermons", methods=["GET"])
 def get_sermons():
     try:
+        # Fetch all sermon records from Supabase
         response = supabase.table("audio_storage").select("*").execute()
         records = response.data or []
 
         if not records:
             return jsonify({"status": "error", "message": "No sermons found"}), 404
 
-        sermons = [
-            {
-                "id": record.get("id"),
-                "pastorName": record.get("preacher"),
-                "sermonTitle": record.get("title"),
-                "sermonDate": record.get("timestamp")
-            }
-            for record in records
-        ]
+        # Use a dictionary to ensure only one entry per sermon title
+        unique_sermons = {}
+        for record in records:
+            title = record.get("title")
+            if title not in unique_sermons:
+                unique_sermons[title] = {
+                    "id": record.get("id"),
+                    "pastorName": record.get("preacher"),
+                    "sermonTitle": record.get("title"),
+                    "sermonDate": record.get("timestamp")
+                }
 
-        return jsonify({"status": "success", "sermons": sermons}), 200
+        # Convert dictionary values to a list
+        sermons = list(unique_sermons.values())
+
+        return jsonify({
+            "status": "success",
+            "sermons": sermons
+        }), 200
 
     except Exception as e:
         my_only.error(f"Error fetching sermons: {e}")
-        return jsonify({"status": "error", "message": "Failed to get sermons"}), 500
+        return jsonify({
+            "status": "error",
+            "message": "Failed to get sermons"
+        }), 500
 
 
 # ---------------- GET SERMON AUDIOS ---------------- #
