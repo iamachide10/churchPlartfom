@@ -160,6 +160,8 @@ def get_sermons():
 def get_sermon_audios(sermon_id):
     try:
         print("Fetching audios for sermon_id:", sermon_id)
+        print("Sermon ID received in backend:", repr(sermon_id))
+        
         # Fetch all audios that match the given sermon_id
         response = supabase.table("audio_storage").select("*").eq("sermon_id", sermon_id).execute()
         records = response.data or []
@@ -186,6 +188,7 @@ def get_sermon_audios(sermon_id):
         return jsonify({"status": "success", "sermon": sermon_data}), 200
 
     except Exception as e:
+
         my_only.error(f"Error fetching sermon audios: {e}")
         return jsonify({
             "status": "error",
