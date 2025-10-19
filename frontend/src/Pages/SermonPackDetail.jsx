@@ -1,10 +1,9 @@
-iimport { useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 function SermonPackDetails() {
-  // we now use "title" instead of "id"
-  const { title } = useParams();
+  const { sermon_id } = useParams(); // 👈 use sermon_id now
   const { user } = useAuth();
   const [sermon, setSermon] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,7 +13,7 @@ function SermonPackDetails() {
       try {
         const API_URL = import.meta.env.VITE_API_URL;
         const response = await fetch(
-          `${API_URL}/uploads/get-sermon-audios/${encodeURIComponent(title)}`,
+          `${API_URL}/uploads/get-sermon-audios/${sermon_id}`, // 👈 use id instead of title
           {
             headers: {
               Authorization: `Bearer ${user?.access_token}`,
@@ -34,7 +33,7 @@ function SermonPackDetails() {
     };
 
     fetchSermonDetails();
-  }, [title, user]);
+  }, [sermon_id, user]); // 👈 dependency updated
 
   if (loading)
     return (
