@@ -70,7 +70,7 @@ def audio_handling():
                 "timestamp": timestamp,
             }
             new_sermon = supabase.table("sermons").insert(sermon_record).execute()
-            sermon_id = new_sermon.data[0]["id"]
+            sermon_id = f"SERMON-{uuid.uuid4().hex[:8]}"
             print(f"New sermon created → ID: {sermon_id}")
 
         # 🎧 Step 3: Upload each audio file under that sermon ID
