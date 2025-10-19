@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+
+let ffmpegInstance = null;
 function UploadSermon() {
   const [pastorName, setPastorName] = useState("");
   const [sermonTitle, setSermonTitle] = useState("");
@@ -25,24 +27,27 @@ function UploadSermon() {
 
   // 🎧 Convert any audio file to MP3 before upload (works even on Render)
   const convertToMp3 = async (file) => {
-    // Load FFmpeg dynamically from CDN to avoid build issues
-    const { createFFmpeg, fetchFile } = await import(
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.9/dist/ffmpeg.min.js"
-    );
+    if (!ffmpegInstance) {
+      const ffmpegModule = await import(
+        "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.8/dist/ffmpeg.min.js"
+      );
+      const { createFFmpeg, fetchFile } = ffmpegModule;
+      ffmpegInstance = createFFmpeg({ log: true });
+      ffmpegInstance.fetchFile = fetchFile;
+      await ffmpegInstance.load();
+    }
 
-    const ffmpeg = createFFmpeg({ log: true });
-    await ffmpeg.load();
+    const ffmpeg = ffmpegInstance;
+    const fetchFile = ffmpeg.fetchFile;
 
     ffmpeg.FS("writeFile", file.name, await fetchFile(file));
-    const output = "output.mp3";
+    const output = `${file.name.replace(/\.\w+$/, "")}-converted.mp3`;
+
     await ffmpeg.run("-i", file.name, "-b:a", "192k", output);
     const data = ffmpeg.FS("readFile", output);
 
-    const mp3File = new File([data.buffer], file.name.replace(/\.\w+$/, ".mp3"), {
-      type: "audio/mp3",
-    });
+    const mp3File = new File([data.buffer], output, { type: "audio/mp3" });
 
-    // Cleanup FFmpeg memory
     ffmpeg.FS("unlink", file.name);
     ffmpeg.FS("unlink", output);
 
