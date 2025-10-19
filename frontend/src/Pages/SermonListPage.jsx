@@ -4,37 +4,33 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../Components/spinser";
 
-
 export const SermonListPage = () => {
- const [sermons, setSermons] = useState([]);
+  const [sermons, setSermons] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { user,access_token } = useAuth();
+  const { user, access_token } = useAuth();
 
   useEffect(() => {
     const fetchSermons = async () => {
-      console.log(access_token);
       try {
         const API_URL = import.meta.env.VITE_API_URL;
         const url = `${API_URL}/uploads/get-sermons`;
-        // const response = await fetch(url, {
-        //   headers: {
-        //     "Authorization": `Bearer ${access_token}`,
-        //   },
-        // });
+
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error("Failed to fetch sermons");
         }
+
         const data = await response.json();
         setSermons(data.sermons || []);
-        console.log(data.sermons);
+        console.log("Fetched sermons:", data.sermons);
       } catch (error) {
         console.error("Error fetching sermons:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchSermons();
   }, [user]);
 
@@ -42,14 +38,13 @@ export const SermonListPage = () => {
     return <Spinner />;
   }
 
-  if(!user) {
-  return (
-    <p className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 lg:px-12 py-10 font-bold text-lg text-center mt-9">
-      Please Signin first
-    </p>
-  );
+  if (!user) {
+    return (
+      <p className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 lg:px-12 py-10 font-bold text-lg text-center mt-9">
+        Please Sign in first.
+      </p>
+    );
   }
-
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 sm:px-6 lg:px-12 py-10">
@@ -59,14 +54,16 @@ export const SermonListPage = () => {
 
       {sermons.length === 0 ? (
         <p className="text-center text-gray-400">
-          No sermons uploaded yet. Go to Upload Page to add one.
+          No sermons uploaded yet. Go to the Upload Page to add one.
         </p>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {sermons.map((sermon) => (
             <div
-              key={sermon.id}
-              onClick={() => navigate(`/sermons/${encodeURIComponent(sermon.sermonTitle)}`)}
+              key={sermon.sermon_id}
+              onClick={() =>
+                navigate(`/sermons/${encodeURIComponent(sermon.sermon_id)}`)
+              }
               className="cursor-pointer"
             >
               <SermonCard
