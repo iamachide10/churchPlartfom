@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg"; // 👈 conversion library
-
-const ffmpeg = createFFmpeg({ log: true });
 
 function UploadSermon() {
   const [pastorName, setPastorName] = useState("");
@@ -26,24 +23,30 @@ function UploadSermon() {
     setAudios((prev) => [...prev, ...newAudios]);
   };
 
-  // 🎧 Convert to MP3 before uploading
+  // 🎧 Convert any audio file to MP3 before upload (works even on Render)
   const convertToMp3 = async (file) => {
-    if (!ffmpeg.isLoaded()) await ffmpeg.load();
+    // Load FFmpeg dynamically from CDN to avoid build issues
+    const { createFFmpeg, fetchFile } = await import(
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.9/dist/ffmpeg.min.js"
+    );
+
+    const ffmpeg = createFFmpeg({ log: true });
+    await ffmpeg.load();
+
     ffmpeg.FS("writeFile", file.name, await fetchFile(file));
+    const output = "output.mp3";
+    await ffmpeg.run("-i", file.name, "-b:a", "192k", output);
+    const data = ffmpeg.FS("readFile", output);
 
-    const outputName = file.name.replace(/\.[^/.]+$/, ".mp3");
-    await ffmpeg.run("-i", file.name, "-b:a", "192k", outputName);
-    const data = ffmpeg.FS("readFile", outputName);
-
-    const convertedFile = new File([data.buffer], outputName, {
-      type: "audio/mpeg",
+    const mp3File = new File([data.buffer], file.name.replace(/\.\w+$/, ".mp3"), {
+      type: "audio/mp3",
     });
 
-    // Clean ffmpeg memory
+    // Cleanup FFmpeg memory
     ffmpeg.FS("unlink", file.name);
-    ffmpeg.FS("unlink", outputName);
+    ffmpeg.FS("unlink", output);
 
-    return convertedFile;
+    return mp3File;
   };
 
   const handleSermonSave = async () => {
@@ -59,25 +62,7 @@ function UploadSermon() {
       const API_URL = import.meta.env.VITE_API_URL;
       const formData = new FormData();
 
-      const convertedAudios = [];
-      for (const audio of audios) {
-        setAudios((prev) =>
-          prev.map((a) =>
-            a.name === audio.name ? { ...a, status: "converting" } : a
-          )
-        );
-        const mp3File = await convertToMp3(audio.file);
-        convertedAudios.push({ ...audio, file: mp3File, name: mp3File.name });
-        setAudios((prev) =>
-          prev.map((a) =>
-            a.name === audio.name ? { ...a, status: "ready" } : a
-          )
-        );
-      }
-
-      convertedAudios.forEach((audio) =>
-        formData.append("filenames", audio.name)
-      );
+      audios.forEach((audio) => formData.append("filenames", audio.name));
       formData.append("preacher", pastorName);
       formData.append("title", sermonTitle);
       formData.append("date", sermonDate);
@@ -87,16 +72,19 @@ function UploadSermon() {
         method: "POST",
         body: formData,
       });
-
       if (!res.ok) throw new Error("Failed to get signed URLs");
 
       const { sermon_id, urls } = await res.json();
 
       let uploadedCount = 0;
 
-      // 2️⃣ Upload to Supabase using signed URLs
       const uploadFile = async (audio, uploadUrlObj) => {
         try {
+          // 🧩 Convert file to MP3 if not already
+          if (!audio.file.type.includes("mp3")) {
+            audio.file = await convertToMp3(audio.file);
+          }
+
           const xhr = new XMLHttpRequest();
           xhr.open("PUT", uploadUrlObj.upload_url, true);
           xhr.setRequestHeader("Content-Type", audio.file.type);
@@ -122,7 +110,7 @@ function UploadSermon() {
           });
 
           uploadedCount++;
-          setProgress(Math.round((uploadedCount / convertedAudios.length) * 100));
+          setProgress(Math.round((uploadedCount / audios.length) * 100));
 
           setAudios((prev) =>
             prev.map((a) =>
@@ -141,10 +129,10 @@ function UploadSermon() {
         }
       };
 
-      // Upload in batches of 5
+      // Batch uploads (5 at a time)
       const batchSize = 5;
-      for (let i = 0; i < convertedAudios.length; i += batchSize) {
-        const batch = convertedAudios.slice(i, i + batchSize);
+      for (let i = 0; i < audios.length; i += batchSize) {
+        const batch = audios.slice(i, i + batchSize);
         await Promise.all(
           batch.map((audio) => {
             const urlObj = urls.find((u) => u.filename === audio.name);
@@ -153,7 +141,7 @@ function UploadSermon() {
         );
       }
 
-      // 3️⃣ Register uploaded sermon
+      // 3️⃣ Register sermon metadata
       const registerBody = {
         sermon_id,
         preacher: pastorName,
@@ -248,7 +236,6 @@ function UploadSermon() {
             className="w-full px-4 py-2 bg-gray-800 text-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400"
           />
 
-          {/* Progress */}
           {uploading && (
             <div className="mt-6">
               <p className="text-yellow-300 font-semibold mb-2">
@@ -262,7 +249,6 @@ function UploadSermon() {
             </div>
           )}
 
-          {/* Uploaded Audios */}
           <div className="mt-8">
             <h3 className="text-xl font-semibold text-yellow-300 mb-3">
               Uploaded Audios ({audios.length})
@@ -287,8 +273,6 @@ function UploadSermon() {
                             ? "bg-red-500"
                             : audio.status === "done"
                             ? "bg-green-500"
-                            : audio.status === "converting"
-                            ? "bg-blue-400"
                             : "bg-yellow-400"
                         }`}
                         style={{ width: `${audio.progress}%` }}
@@ -299,8 +283,6 @@ function UploadSermon() {
                         ? "✅ Uploaded"
                         : audio.status === "error"
                         ? "❌ Failed"
-                        : audio.status === "converting"
-                        ? "🎧 Converting to MP3..."
                         : `${audio.progress}%`}
                     </p>
                   </li>
