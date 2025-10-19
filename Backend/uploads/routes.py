@@ -82,7 +82,7 @@ def audio_handling():
                         "title": title,
                         "timestamp": timestamp,
                         "original_filename": filename,
-                        "filepath": public_url,
+                        "file_path": public_url,
                         "storage_name": unique_name,
                     }
 
@@ -107,7 +107,7 @@ def audio_handling():
             "sermon_id": sermon_id,
             "uploaded": success_audios,
             "failed": failed_audios
-        }), 200
+        }), 200 
     except Exception as e:
         my_only.error(f"Upload failed: {e}")
         return jsonify({"status": "error", "message": "Upload failed"}), 500
