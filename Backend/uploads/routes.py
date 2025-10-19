@@ -77,6 +77,7 @@ def get_signed_urls():
             "message": "Failed to generate signed URLs"
         }), 500
 
+
 @uploads_bp.route("/register-sermon", methods=["POST"])
 def register_sermon():
     try:
@@ -118,7 +119,7 @@ def register_sermon():
         }), 200
 
     except Exception as e:
-         my_only.error(f"Error registring sermons: {e}")
+        my_only.error(f"Error registring sermons: {e}")
         return jsonify({
             "status": "error",
             "message": "Failed to register sermon"
