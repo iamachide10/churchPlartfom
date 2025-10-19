@@ -36,6 +36,7 @@ def audio_handling():
         preacher = request.form.get("preacher")
         title = request.form.get("title")
         timestamp = request.form.get("date")
+        sermon_id = f"SERMON-{uuid.uuid4().hex[:8]}"
 
         print("FILES:", request.files)
         print("FORM:", request.form)
@@ -49,29 +50,7 @@ def audio_handling():
 
         success_audios, failed_audios = [], []
 
-        # 🔍 Step 1: Check if a sermon already exists
-        existing_sermon = (
-            supabase.table("sermons")
-            .select("*")
-            .eq("preacher", preacher)
-            .eq("title", title)
-            .eq("timestamp", timestamp)
-            .execute()
-        )
-
-        if existing_sermon.data and len(existing_sermon.data) > 0:
-            sermon_id = existing_sermon.data[0]["id"]
-            print(f"Existing sermon found → ID: {sermon_id}")
-        else:
-            # 🎯 Step 2: Create a new sermon
-            sermon_record = {
-                "preacher": preacher,
-                "title": title,
-                "timestamp": timestamp,
-            }
-            new_sermon = supabase.table("sermons").insert(sermon_record).execute()
-            sermon_id = f"SERMON-{uuid.uuid4().hex[:8]}"
-            print(f"New sermon created → ID: {sermon_id}")
+   
 
         # 🎧 Step 3: Upload each audio file under that sermon ID
         for audio in audios:
@@ -132,6 +111,10 @@ def audio_handling():
     except Exception as e:
         my_only.error(f"Upload failed: {e}")
         return jsonify({"status": "error", "message": "Upload failed"}), 500
+
+
+
+
 # ---------------- GET ALL SERMONS ---------------- #
 @uploads_bp.route("/get-sermons", methods=["GET"])
 def get_sermons():

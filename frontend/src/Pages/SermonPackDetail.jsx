@@ -12,14 +12,16 @@ function SermonPackDetails() {
     const fetchSermonDetails = async () => {
       try {
         const API_URL = import.meta.env.VITE_API_URL;
-        const response = await fetch(
-          `${API_URL}/uploads/get-sermon-audios/${sermon_id}`, // 👈 use id instead of title
-          {
-            headers: {
-              Authorization: `Bearer ${user?.access_token}`,
-            },
-          }
-        );
+        const url = `${API_URL}/uploads/get-sermon-audios/${sermon_id}`;
+        const response = await fetch(url)
+        // const response = await fetch(
+        //   `${API_URL}/uploads/get-sermon-audios/${sermon_id}`, // 👈 use id instead of title
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${user?.access_token}`,
+        //     },
+        //   }
+        // );
 
         if (!response.ok) throw new Error("Failed to fetch sermon details");
 

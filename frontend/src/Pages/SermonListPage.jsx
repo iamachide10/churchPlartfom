@@ -62,7 +62,7 @@ export const SermonListPage = () => {
             <div
               key={sermon.sermon_id}
               onClick={() =>
-                navigate(`/sermons/${encodeURIComponent(sermon.sermon_id)}`)
+                navigate(`/sermons/${sermon.sermon_id}`)
               }
               className="cursor-pointer"
             >
