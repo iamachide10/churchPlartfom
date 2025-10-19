@@ -69,8 +69,14 @@ def audio_handling():
                     supabase_path = f"sermons/{sermon_id}/{unique_name}"
 
                     # ✅ Upload to Supabase Storage
+                   # Create the storage client once
+                    storage_client = supabase.storage()
+                    # Get the bucket
+                    bucket = storage_client.from_(SUPABASE_BUCKET)
+                    # Upload
                     with open(converted_path, "rb") as f:
-                        supabase.storage().from_(SUPABASE_BUCKET).upload(supabase_path, f)
+                        bucket.upload(supabase_path, f)
+
 
                     # ✅ Get public URL
                     public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{supabase_path}"
@@ -161,7 +167,6 @@ def get_sermon_audios(sermon_id):
     try:
         print("Fetching audios for sermon_id:", sermon_id)
         print("Sermon ID received in backend:", repr(sermon_id))
-        
         # Fetch all audios that match the given sermon_id
         response = supabase.table("audio_storage").select("*").eq("sermon_id", sermon_id).execute()
         records = response.data or []
