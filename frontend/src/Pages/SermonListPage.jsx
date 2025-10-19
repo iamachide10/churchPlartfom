@@ -66,7 +66,7 @@ export const SermonListPage = () => {
           {sermons.map((sermon) => (
             <div
               key={sermon.id}
-              onClick={() => navigate(`/sermons/${sermon.id}`)}
+              onClick={() => navigate(`/sermons/${sermon.title}`)}
               className="cursor-pointer"
             >
               <SermonCard
