@@ -159,6 +159,7 @@ def get_sermons():
 @jwt_required(optional=True)
 def get_sermon_audios(sermon_id):
     try:
+        print("Fetching audios for sermon_id:", sermon_id)
         # Fetch all audios that match the given sermon_id
         response = supabase.table("audio_storage").select("*").eq("sermon_id", sermon_id).execute()
         records = response.data or []
