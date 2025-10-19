@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg"; // 👈 conversion library
+
+const ffmpeg = createFFmpeg({ log: true });
 
 function UploadSermon() {
   const [pastorName, setPastorName] = useState("");
@@ -16,11 +19,31 @@ function UploadSermon() {
       file,
       name: file.name,
       url: URL.createObjectURL(file),
-      progress: 0, // 👈 individual progress
+      progress: 0,
       status: "pending",
     }));
 
     setAudios((prev) => [...prev, ...newAudios]);
+  };
+
+  // 🎧 Convert to MP3 before uploading
+  const convertToMp3 = async (file) => {
+    if (!ffmpeg.isLoaded()) await ffmpeg.load();
+    ffmpeg.FS("writeFile", file.name, await fetchFile(file));
+
+    const outputName = file.name.replace(/\.[^/.]+$/, ".mp3");
+    await ffmpeg.run("-i", file.name, "-b:a", "192k", outputName);
+    const data = ffmpeg.FS("readFile", outputName);
+
+    const convertedFile = new File([data.buffer], outputName, {
+      type: "audio/mpeg",
+    });
+
+    // Clean ffmpeg memory
+    ffmpeg.FS("unlink", file.name);
+    ffmpeg.FS("unlink", outputName);
+
+    return convertedFile;
   };
 
   const handleSermonSave = async () => {
@@ -36,7 +59,25 @@ function UploadSermon() {
       const API_URL = import.meta.env.VITE_API_URL;
       const formData = new FormData();
 
-      audios.forEach((audio) => formData.append("filenames", audio.name));
+      const convertedAudios = [];
+      for (const audio of audios) {
+        setAudios((prev) =>
+          prev.map((a) =>
+            a.name === audio.name ? { ...a, status: "converting" } : a
+          )
+        );
+        const mp3File = await convertToMp3(audio.file);
+        convertedAudios.push({ ...audio, file: mp3File, name: mp3File.name });
+        setAudios((prev) =>
+          prev.map((a) =>
+            a.name === audio.name ? { ...a, status: "ready" } : a
+          )
+        );
+      }
+
+      convertedAudios.forEach((audio) =>
+        formData.append("filenames", audio.name)
+      );
       formData.append("preacher", pastorName);
       formData.append("title", sermonTitle);
       formData.append("date", sermonDate);
@@ -53,7 +94,7 @@ function UploadSermon() {
 
       let uploadedCount = 0;
 
-      // 2️⃣ Upload files to Supabase using signed URLs
+      // 2️⃣ Upload to Supabase using signed URLs
       const uploadFile = async (audio, uploadUrlObj) => {
         try {
           const xhr = new XMLHttpRequest();
@@ -81,7 +122,7 @@ function UploadSermon() {
           });
 
           uploadedCount++;
-          setProgress(Math.round((uploadedCount / audios.length) * 100));
+          setProgress(Math.round((uploadedCount / convertedAudios.length) * 100));
 
           setAudios((prev) =>
             prev.map((a) =>
@@ -100,10 +141,10 @@ function UploadSermon() {
         }
       };
 
-      // Batch uploads 5 at a time
+      // Upload in batches of 5
       const batchSize = 5;
-      for (let i = 0; i < audios.length; i += batchSize) {
-        const batch = audios.slice(i, i + batchSize);
+      for (let i = 0; i < convertedAudios.length; i += batchSize) {
+        const batch = convertedAudios.slice(i, i + batchSize);
         await Promise.all(
           batch.map((audio) => {
             const urlObj = urls.find((u) => u.filename === audio.name);
@@ -112,7 +153,7 @@ function UploadSermon() {
         );
       }
 
-      // 3️⃣ Register uploaded sermon metadata
+      // 3️⃣ Register uploaded sermon
       const registerBody = {
         sermon_id,
         preacher: pastorName,
@@ -207,7 +248,7 @@ function UploadSermon() {
             className="w-full px-4 py-2 bg-gray-800 text-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400"
           />
 
-          {/* Overall Progress */}
+          {/* Progress */}
           {uploading && (
             <div className="mt-6">
               <p className="text-yellow-300 font-semibold mb-2">
@@ -239,7 +280,6 @@ function UploadSermon() {
                       Audio {index + 1}: {audio.name}
                     </p>
                     <audio controls src={audio.url} className="w-full rounded" />
-
                     <div className="w-full bg-gray-700 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full ${
@@ -247,17 +287,20 @@ function UploadSermon() {
                             ? "bg-red-500"
                             : audio.status === "done"
                             ? "bg-green-500"
+                            : audio.status === "converting"
+                            ? "bg-blue-400"
                             : "bg-yellow-400"
                         }`}
                         style={{ width: `${audio.progress}%` }}
                       ></div>
                     </div>
-
                     <p className="text-sm text-gray-400">
                       {audio.status === "done"
                         ? "✅ Uploaded"
                         : audio.status === "error"
                         ? "❌ Failed"
+                        : audio.status === "converting"
+                        ? "🎧 Converting to MP3..."
                         : `${audio.progress}%`}
                     </p>
                   </li>
