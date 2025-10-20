@@ -22,6 +22,8 @@ SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 @uploads_bp.route("/get-signed-urls", methods=["POST"])
 def get_signed_urls():
+
+    print("Supabase SDK version:", supabase.__version__)
     try:
         # Generate unique sermon ID
         sermon_id = f"SERMON-{uuid.uuid4().hex[:8]}"
