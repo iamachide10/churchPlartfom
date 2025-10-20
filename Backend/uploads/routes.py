@@ -1,6 +1,6 @@
 from . import uploads_bp
 from flask import jsonify, request, current_app
-import uuid, os, mimetypes
+import uuid, os, mimetypes,sys
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -22,8 +22,8 @@ SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 @uploads_bp.route("/get-signed-urls", methods=["POST"])
 def get_signed_urls():
-
-    print("Supabase SDK version:", supabase.__version__)
+    print("🚀 Supabase SDK version:", getattr(supabase, "__version__", "unknown"))
+    print("🐍 Python version:", sys.version)
     try:
         # Generate unique sermon ID
         sermon_id = f"SERMON-{uuid.uuid4().hex[:8]}"
