@@ -49,10 +49,11 @@ def get_signed_urls():
 
             # ✅ Create signed URL for upload
             signed_url_data = bucket.create_signed_upload_url(supabase_path)
+            
 
             # Some SDK versions return dicts, others return objects
             signed_url = signed_url_data.get("signed_url") if isinstance(signed_url_data, dict) else signed_url_data.signed_url
-
+            print("🔍 Supabase upload URL:", signed_url)
             signed_urls.append({
                 "filename": safe_name,
                 "upload_url": signed_url,
