@@ -7,6 +7,10 @@ from supabase import create_client, Client
 from flask_jwt_extended import jwt_required
 from app_logging import normal_logs
 from tasks import check_file_validity
+import supabase
+
+print("Supabase SDK version:", supabase.__version__)
+
 
 # Initialize logger
 my_only = normal_logs()
@@ -27,7 +31,6 @@ print("✅ Supabase client initialized!")
 
 @uploads_bp.route("/get-signed-urls", methods=["POST"])
 def get_signed_urls():
-    print("🚀 Supabase SDK version:", getattr(supabase, "__version__", "unknown"))
     print("🐍 Python version:", sys.version)
     try:
         # Generate unique sermon ID
