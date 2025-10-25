@@ -55,7 +55,7 @@ def get_signed_urls():
         signed_urls = []
         for filename in filenames:
             safe_name = secure_filename(filename)
-            supabase_path = f"sermons/{sermon_id}/{safe_name}"
+            supabase_path = f"sermons/{sermon_id}/{safe_name}".lstrip("/")
 
             # ✅ Create signed URL for upload
             signed_url_data = bucket.create_signed_upload_url(supabase_path)
