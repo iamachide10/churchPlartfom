@@ -19,7 +19,12 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET")
 
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("❌ Missing SUPABASE_URL or SUPABASE_KEY in environment")
+
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+print("✅ Supabase client initialized!")
+
 @uploads_bp.route("/get-signed-urls", methods=["POST"])
 def get_signed_urls():
     print("🚀 Supabase SDK version:", getattr(supabase, "__version__", "unknown"))
